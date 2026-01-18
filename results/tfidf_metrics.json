@@ -1,0 +1,15 @@
+{
+  "model": "TF\u2013IDF + Logistic Regression",
+  "best_params": {
+    "C": 1,
+    "penalty": "l2",
+    "solver": "lbfgs"
+  },
+  "train_accuracy": 0.9180482338859602,
+  "train_f1_macro": 0.9171016534528713,
+  "val_accuracy": 0.8655256723716381,
+  "val_f1_macro": 0.8642073952246145,
+  "test_accuracy": 0.8657567732735791,
+  "test_f1_macro": 0.8646869637915211,
+  "cv_score": 0.8626730899942949
+}

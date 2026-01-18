@@ -1,0 +1,17 @@
+{
+  "model": "Linguistic Features + Random Forest",
+  "best_params": {
+    "n_estimators": 200,
+    "max_depth": 15,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2
+  },
+  "train_accuracy": 0.8737362161611532,
+  "train_f1_macro": 0.8729250843149284,
+  "val_accuracy": 0.6399755501222494,
+  "val_f1_macro": 0.6348895741855101,
+  "test_accuracy": 0.6500305561214097,
+  "test_f1_macro": 0.6449185066683369,
+  "cv_score": 0.6390818124487613,
+  "n_features": 10
+}

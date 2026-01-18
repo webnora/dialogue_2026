@@ -1,1 +1,43 @@
 data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data splits (large intermediate files)
+results/data_splits.pkl
+
+# Model checkpoints (temporary)
+*.pth
+best_*.pth
+
+# Training logs
+*.log
+/tmp/*.log
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
