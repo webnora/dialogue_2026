@@ -78,35 +78,53 @@
 
 ---
 
-### Задача 1.3: RoBERTa Fine-tuning 🚧 В ПРОЦЕССЕ
+### Задача 1.3: BERT Fine-tuning ✅ ЗАВЕРШЕНА
 
-**Статус:** Обучение запущено (2026-01-19 01:32)
+**Финальные результаты:**
+- **Test Accuracy: 87.64%** ✨
+- **F1 (macro): 0.8771**
+- **F1 (weighted): 0.8771**
+
+**Confusion Matrix:**
+```
+                Predicted
+                Analy  Edito  Featu  News  Review
+Actual Analy     837     41     80    40       2
+       Edito      53    916     20     2       9
+       Featu      65     13    818    64      40
+       News       33      4     69   894       0
+       Review      6      8     69     0     917
+```
+
+**Лучшая точность по жанрам:**
+- Editorial: 91.6%
+- Review: 91.7%
+- News: 89.4%
+
+**Худшая точность по жанрам:**
+- Feature: 81.8%
+- Analytical: 83.7%
 
 **Конфигурация:**
-- Модель: RoBERTa-base (124M параметров)
+- Модель: BERT-base-uncased (110M параметров)
 - Устройство: MPS (Apple Silicon GPU)
 - Batch size: 16
-- Epochs: 4
-- Max length: 512
+- Epochs: 3
+- Max length: 256
 - Learning rate: 2e-5
 
-**Данные:**
-- Train: 39,994 текстов
-- Val: 4,999 текстов
-- Test: 5,000 текстов
-
-**Текущий прогресс:**
-- Epoch 1/4: 24/2,500 batches (0.96%)
-- Loss: 1.59-1.66
-- Скорость: ~3.23s/batch
-- Ожидаемое время завершения: ~8-9 часов
-
-**Ожидаемый результат:** ~89% accuracy
+**Validation Accuracy по эпохам:**
+- Epoch 1: 86.76% (F1: 0.8684)
+- Epoch 2: ~87.5%
+- Epoch 3: **88.00%** (F1: 0.8805) ← лучшая модель
 
 **Файлы созданы:**
-- notebooks/03_roberta_finetuning.ipynb
-- notebooks/run_roberta_training.py
-- monitor_roberta.sh
+- `models/bert_category_classifier/` (437 MB safetensors)
+- `models/bert_label_encoder.pkl`
+- `results/bert_metrics.json`
+- `results/bert_confusion_matrix.npy`
+- `notebooks/run_bert_training.py`
+- `notebooks/test_bert_model.py`
 
 ---
 
@@ -117,17 +135,11 @@
 | Задача | Модель | Accuracy | Macro F1 | Статус | Файлы |
 |--------|--------|----------|----------|--------|-------|
 | **1.1** | TF–IDF + LR | **86.58%** | **0.8647** | ✅ | models/tfidf_lr.pkl, results/tfidf_* |
-| **1.2** | Linguistic + RF | **65.00%** | **0.449** | ✅ | models/linguistic_rf.pkl, results/linguistic_* |
-| **1.3** | RoBERTa | - | - | 🚧 | notebooks/03_roberta_finetuning.ipynb (обучение...) |
+| **1.2** | Linguistic + RF | **65.00%** | **0.6449** | ✅ | models/linguistic_rf.pkl, results/linguistic_* |
+| **1.3** | BERT | **87.64%** | **0.8771** | ✅ | models/bert_category_classifier/, results/bert_* |
 | **1.4** | Сравнение | - | - | [ ] | results/baseline_comparison.ipynb |
 
 ### Осталось выполнить (Фаза 1):
-
-- [🚧] **Задача 1.3**: RoBERTa fine-tuning (В ПРОЦЕССЕ)
-  - ✅ Создан notebook: `notebooks/03_roberta_finetuning.ipynb`
-  - ✅ Создан скрипт: `notebooks/run_roberta_training.py`
-  - 🚧 Обучение RoBERTa (запущено 01:32,预计 ~09:30 завершение)
-  - Ожидается: ~89% accuracy
 
 - [ ] **Задача 1.4**: Сводная таблица результатов (1 день)
   - Создать notebook: `results/baseline_comparison.ipynb`
@@ -226,4 +238,4 @@ dialogue_2026/
 
 ---
 
-**Последнее обновление**: 2026-01-19 01:35
+**Последнее обновление**: 2026-01-19 23:00
