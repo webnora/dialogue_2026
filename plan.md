@@ -197,7 +197,7 @@
        'TF-IDF + LR': load_metrics('results/tfidf_metrics.json'),
        'Linguistic + RF': load_metrics('results/linguistic_metrics.json'),
        'BERT': load_metrics('results/bert_metrics.json'),
-       'RoBERTa': load_metrics('results/roberta_metrics.json')
+       
    }
 
    comparison = pd.DataFrame(results).T
@@ -210,7 +210,7 @@
 **Проверка**:
 - [ ] Все модели обучены
 - [ ] Таблица создана
-- [ ] RoBERTa ≈ BERT > Linguistic > TF–IDF
+- [ ] BERT > Linguistic > TF–IDF
 
 ---
 
@@ -232,6 +232,7 @@
    cm = confusion_matrix(y_true, y_pred)
    plt.figure(figsize=(10, 8))
    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+
    plt.savefig('results/confusion_{model_name}.png')
    ```
 

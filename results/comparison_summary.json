@@ -1,0 +1,31 @@
+{
+  "n_models": 3,
+  "best_model": "BERT",
+  "best_accuracy": 0.8764,
+  "worst_model": "Linguistic + RF",
+  "worst_accuracy": 0.6500305561214097,
+  "accuracy_range": 0.22636944387859026,
+  "models": [
+    {
+      "Model": "TF\u2013IDF + LR",
+      "Accuracy": 0.8657567732735791,
+      "F1 (macro)": 0.8646869637915211,
+      "Precision (macro)": 0.865,
+      "Recall (macro)": 0.865
+    },
+    {
+      "Model": "Linguistic + RF",
+      "Accuracy": 0.6500305561214097,
+      "F1 (macro)": 0.6449185066683369,
+      "Precision (macro)": 0.65,
+      "Recall (macro)": 0.65
+    },
+    {
+      "Model": "BERT",
+      "Accuracy": 0.8764,
+      "F1 (macro)": 0.8770935677918249,
+      "Precision (macro)": 0.877,
+      "Recall (macro)": 0.877
+    }
+  ]
+}
