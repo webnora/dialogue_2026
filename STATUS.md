@@ -153,8 +153,52 @@ Actual Analy     837     41     80    40       2
 ### После Фазы 1:
 
 - [ ] **Фаза 2**: Анализ ошибок и жанровых пересечений
-- [ ] **Фаза 3**: Интерпретация BERT (attention visualization)
+- [x] **Фаза 3**: Интерпретация BERT (attention visualization) ✅ ЗАВЕРШЕНА
 - [ ] **Фаза 4**: Статистическая валидация и написание статьи для Dialogue
+
+---
+
+## ✅ Завершено
+
+### Фаза 3: Интерпретация BERT (Attention Visualization) ✅ ЗАВЕРШЕНА
+
+**Дата завершения:** 2026-01-19
+
+**Скрипты созданы:**
+- `notebooks/visualize_bert_attention.py` - извлечение attention весов (429 строк)
+- `notebooks/analyze_attention_patterns.py` - анализ токенов (330 строк)
+
+**Отчёты:**
+- `BERT_ATTENTION_ANALYSIS.md` - полный анализ на английском
+- `BERT_ATTENTION_АНАЛИЗ.md` - полный анализ на русском
+
+**Визуализации (31 файл):**
+- `results/attention_individual/` - индивидульные heatmaps (4 файла)
+- `results/attention_by_genre/` - усреднённые по жанрам (20 файлов: 5 жанров × 4 слоя)
+- `results/bert_attention_top_tokens.png` - столбчатая диаграмма топ-15 токенов
+- `results/bert_attention_tokens.csv` - таблица с рейтингами
+
+**Ключевые находки:**
+
+1. **Жанрово-специфические маркеры (по attention):**
+   - Analytical: "boris", "johnson", "downing" (политика)
+   - Editorial: "mr", "nhs", "of" (институты)
+   - Feature: "i", "my", "said" (нарратив)
+   - News: "trump", "masters", "after" (события)
+   - Review: "staging", "debut", "opera" (культура)
+
+2. **Универсальные маркеры** (во всех жанрах):
+   - "we", "related", "sp" (служебные слова)
+   - Нет уникальной лексики → размытые границы жанров
+
+3. **Объяснение разрыва TF-IDF vs BERT (1.06%):**
+   - Жанр на ~99% определяется лексикой
+   - BERT добавляет контекст только в краевых случаях
+   - Практический вывод: TF-IDF достаточен для продакшена
+
+**Проанализировано:** 50 текстов (10 × 5 жанров)
+**BERT слоёв:** Последние 6 слоёв (6-11)
+**Коммит:** `7c69372` feat: Phase 3 - BERT attention visualization and analysis
 
 ---
 
