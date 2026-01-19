@@ -13,6 +13,9 @@ __pycache__/
 # Data splits (large intermediate files)
 results/data_splits.pkl
 
+# All model pickle files
+*.pkl
+
 # Model checkpoints (temporary)
 *.pth
 best_*.pth
