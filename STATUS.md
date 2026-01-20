@@ -62,10 +62,12 @@
 **Проблема:** Сильный overfitting (Train: 87% vs Test: 65%)
 
 **Файлы созданы:**
-- models/linguistic_rf.pkl (147 MB)
-- results/linguistic_metrics.json
-- results/linguistic_confusion_matrix.png
-- results/linguistic_feature_importance.pkl
+- models/linguistic_rf.pkl (147 MB) - обновлён 2026-01-20
+- results/linguistic_metrics.json - обновлён 2026-01-20
+- results/linguistic_confusion_matrix.png - обновлён 2026-01-20
+- results/linguistic_feature_importance.pkl - обновлён 2026-01-20
+
+**Обучение:** ~109 минут (извлечение признаков через spaCy)
 
 ---
 
@@ -339,4 +341,4 @@ dialogue_2026/
 
 ---
 
-**Последнее обновление**: 2026-01-19 23:45
+**Последнее обновление**: 2026-01-20 11:22
