@@ -15,6 +15,7 @@ results/data_splits.pkl
 
 # All model pickle files
 *.pkl
+*.safetensors
 
 # Model checkpoints (temporary)
 *.pth
