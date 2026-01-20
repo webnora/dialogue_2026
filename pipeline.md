@@ -2,7 +2,7 @@
 
 **Conference:** Dialogue 2026
 **Date:** January 2026
-**Status:** Phase 1 Complete - Baseline Models
+**Status:** ✅ Phases 1-4 Complete | 📝 Paper in Progress
 
 ---
 
@@ -284,27 +284,142 @@ This aligns with genre theory (Bhatia, 1993; Swales, 2004) that views genres as 
 
 ---
 
-## 8. Future Work (Phase 2-4)
+## 8. Statistical Validation ✅
 
-**Phase 2: Error Analysis**
-- Qualitative analysis of misclassified articles
-- Manual annotation of genre boundaries
-- Corpus linguistics analysis of lexical markers
+### 8.1 McNemar's Test for Model Comparison
 
-**Phase 3: BERT Interpretation**
-- Attention visualization: What does BERT focus on?
-- Probing classifiers: Syntax, semantics, or style?
-- Layer-wise representation analysis
+**Purpose**: Determine whether differences between models are statistically significant.
 
-**Phase 4: Statistical Validation**
-- McNemar's test for model significance
-- Inter-annotator agreement study
-- Cross-dataset generalization
+**Null Hypothesis (H₀)**: Two models have the same error rate.
 
-**Phase 5: Paper Writing**
+**Method**:
+- Contingency table constructed from discordant pairs
+- Chi-squared test with continuity correction:
+  ```
+  χ² = (|b - c| - 1)² / (b + c)
+  ```
+  where b = Model 1 correct/Model 2 wrong, c = Model 1 wrong/Model 2 correct
+
+**Results (Table 4):**
+
+| Comparison | χ² | p-value | Significance |
+|------------|-----|---------|-------------|
+| BERT vs TF-IDF | 156.01 | <0.001 | *** |
+| BERT vs Linguistic | 258.34 | <0.001 | *** |
+| TF-IDF vs Linguistic | 31.07 | <0.001 | *** |
+
+**Interpretation**: All pairwise differences are statistically significant (p < 0.001).
+
+**Why McNemar?**
+- Designed for paired nominal data (same test set)
+- Non-parametric (no distributional assumptions)
+- Focuses on discordant pairs where models disagree
+- More powerful than chi-square for this use case
+
+### 8.2 Bootstrap Confidence Intervals
+
+**Purpose**: Estimate uncertainty around performance metrics.
+
+**Method**:
+- Resampling with replacement: n = 1,000 iterations
+- Stratified bootstrap to maintain class distribution
+- 95% CI: 2.5th to 97.5th percentiles
+
+**Results (Table 5):**
+
+| Model | Accuracy | 95% CI | F1 Macro | 95% CI |
+|--------|----------|---------|----------|---------|
+| **BERT** | 92.73% | [92.02%, 93.42%] | 92.81% | [92.12%, 93.51%] |
+| **TF-IDF** | 86.40% | [85.50%, 87.22%] | 86.32% | [85.42%, 87.17%] |
+| **Linguistic** | 82.85% | [81.78%, 83.94%] | 82.74% | [81.65%, 83.83%] |
+
+**Key Finding**: Confidence intervals do not overlap → differences are robust.
+
+**Why Bootstrap?**
+- Non-parametric (no normality assumption)
+- Works with any metric (accuracy, F1, etc.)
+- Provides intuitive uncertainty quantification
+- Robust to small sample sizes
+
+### 8.3 Model Agreement (Cohen's Kappa)
+
+**Purpose**: Measure inter-model agreement beyond chance.
+
+**Results (Table 6):**
+
+| Model Pair | κ | Interpretation |
+|------------|---|----------------|
+| TF-IDF ↔ BERT | 0.827 | Substantial agreement |
+| Linguistic ↔ BERT | 0.752 | Substantial agreement |
+| TF-IDF ↔ Linguistic | 0.728 | Substantial agreement |
+
+**Interpretation** (Landis-Koch scale):
+- 0.81-1.00: Almost perfect
+- **0.61-0.80: Substantial agreement** ← All models fall here
+- 0.41-0.60: Moderate agreement
+
+**Why Cohen's Kappa?**
+- Standard metric for inter-rater reliability
+- Accounts for chance agreement
+- Widely used in NLP and computational linguistics
+- Provides interpretable scale
+
+### 8.4 Statistical Power Analysis
+
+**Sample Size**: n = 5,000 test articles
+- Power > 0.99 for McNemarar's test at α = 0.05
+- Sufficient for detecting 1-2% accuracy differences
+
+**Effect Sizes**:
+- BERT vs TF-IDF: Δ = 6.33% (large effect)
+- BERT vs Linguistic: Δ = 9.88% (large effect)
+- TF-IDF vs Linguistic: Δ = 3.55% (medium effect)
+
+**Multiple Testing Correction**:
+- Bonferroni correction: α = 0.05/3 ≈ 0.017
+- All results remain significant after correction
+
+### 8.5 Why These Statistical Methods?
+
+#### McNemar vs. Chi-Square
+- **Chi-square**: Tests independence in contingency tables
+- **McNemar**: Specifically designed for paired nominal data
+- **Advantage**: More powerful for model comparison on same test set
+
+#### Bootstrap vs. Parametric CIs
+- **Parametric**: Assumes normal distribution (often violated)
+- **Bootstrap**: Distribution-free, empirical
+- **Advantage**: No assumptions, works with any metric
+
+#### Cohen's Kappa vs. Simple Agreement
+- **Simple agreement**: Doesn't account for chance
+- **Kappa**: Adjusts for expected agreement
+- **Advantage**: Distinguishes true agreement from coincidence
+
+#### Effect Sizes
+- Statistical significance ≠ practical significance
+- Small p-value with tiny difference = not meaningful
+- Effect sizes quantify practical impact
+
+---
+
+## 9. Future Work
+
+### 9.1 Completed ✅
+- Phase 1: Baseline models (TF-IDF, Linguistic, BERT)
+- Phase 2: Error analysis and genre boundary investigation
+- Phase 3: BERT attention visualization and interpretation
+- Phase 4: Statistical validation (McNemar, Bootstrap, Cohen's Kappa)
+
+### 9.2 In Progress 🚧
+- Paper writing for Dialogue 2026
 - Full literature review
-- Theoretical framework
-- Discussion for Dialogue 2026
+- Theoretical framework refinement
+
+### 9.3 Planned 📋
+- Inter-annotator agreement study (human raters)
+- Cross-dataset generalization test
+- Ablation studies for BERT layers
 
 ---
 

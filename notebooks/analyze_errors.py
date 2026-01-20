@@ -14,6 +14,8 @@ from transformers import BertTokenizer, BertForSequenceClassification
 from datasets import Dataset
 from torch.utils.data import DataLoader
 from sklearn.metrics import confusion_matrix
+import spacy
+from tqdm import tqdm
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -34,6 +36,87 @@ print(f"\n{'='*80}")
 print(f"Phase 2: Error Analysis and Genre Boundary Investigation")
 print(f"{'='*80}\n")
 print(f"Using device: {device}\n")
+
+# Linguistic feature lists
+STANCE_MARKERS = [
+    'arguably', 'reportedly', 'seemingly', 'apparently',
+    'undoubtedly', 'clearly', 'obviously', 'evidently',
+    'supposedly', 'presumably', 'ostensibly', 'arguably'
+]
+
+HEDGES = [
+    'perhaps', 'possibly', 'somewhat', 'rather',
+    'quite', 'relatively', 'comparatively', 'somewhat'
+]
+
+MODAL_VERBS = [
+    'can', 'could', 'may', 'might', 'must',
+    'should', 'ought', 'would', 'shall'
+]
+
+REPORTING_VERBS = [
+    'said', 'says', 'say', 'told', 'tells', 'tell',
+    'claimed', 'claims', 'claim', 'stated', 'states', 'state',
+    'reported', 'reports', 'report', 'announced', 'announces'
+]
+
+def extract_linguistic_features(text, nlp):
+    """Extract linguistically motivated features from text."""
+    doc = nlp(text)
+
+    features = {}
+
+    # [1] Type-Token Ratio (lexical diversity)
+    tokens = [token.text.lower() for token in doc if token.is_alpha]
+    if len(tokens) > 0:
+        features['type_token_ratio'] = len(set(tokens)) / len(tokens)
+    else:
+        features['type_token_ratio'] = 0
+
+    # [2] Average sentence length
+    sentences = list(doc.sents)
+    if len(sentences) > 0:
+        sent_lengths = [len(sent) for sent in sentences]
+        features['avg_sentence_length'] = np.mean(sent_lengths)
+    else:
+        features['avg_sentence_length'] = 0
+
+    # [3-5] Pronoun ratios (1st, 2nd, 3rd person)
+    first_person = sum(1 for token in doc if token.tag_ == 'PRP' and token.text.lower() in ['i', 'we', 'me', 'us', 'my', 'our'])
+    second_person = sum(1 for token in doc if token.tag_ == 'PRP' and token.text.lower() in ['you', 'your'])
+    third_person = sum(1 for token in doc if token.tag_ == 'PRP' and token.text.lower() in ['he', 'she', 'it', 'they', 'him', 'her', 'them', 'his', 'hers', 'its', 'their'])
+
+    total_tokens = len(doc)
+    if total_tokens > 0:
+        features['first_person_ratio'] = first_person / total_tokens
+        features['second_person_ratio'] = second_person / total_tokens
+        features['third_person_ratio'] = third_person / total_tokens
+    else:
+        features['first_person_ratio'] = 0
+        features['second_person_ratio'] = 0
+        features['third_person_ratio'] = 0
+
+    # [6] Modal verb ratio
+    modal_count = sum(1 for token in doc if token.text.lower() in MODAL_VERBS)
+    features['modal_ratio'] = modal_count / total_tokens if total_tokens > 0 else 0
+
+    # [7] Stance markers ratio
+    stance_count = sum(1 for token in doc if token.text.lower() in STANCE_MARKERS)
+    features['stance_markers_ratio'] = stance_count / total_tokens if total_tokens > 0 else 0
+
+    # [8] Hedges ratio
+    hedge_count = sum(1 for token in doc if token.text.lower() in HEDGES)
+    features['hedges_ratio'] = hedge_count / total_tokens if total_tokens > 0 else 0
+
+    # [9] Quotes ratio (approximate by counting quotation marks)
+    quote_count = text.count('"')
+    features['quotes_ratio'] = quote_count / total_tokens if total_tokens > 0 else 0
+
+    # [10] Reporting verbs ratio
+    reporting_count = sum(1 for token in doc if token.text.lower() in REPORTING_VERBS)
+    features['reporting_verbs_ratio'] = reporting_count / total_tokens if total_tokens > 0 else 0
+
+    return features
 
 
 def load_test_data():
@@ -76,15 +159,25 @@ def get_predictions_all_models(test_texts, le):
 
     print(f"    ✓ TF-IDF predictions: {len(tfidf_preds)}")
 
-    # Linguistic + RF (check if model exists)
-    linguistic_preds = None
-    try:
-        print("  Loading Linguistic + RF...")
-        linguistic_model = joblib.load("models/linguistic_rf.pkl")
-        # Note: Would need feature extraction here, skip for now
-        print("    ⚠ Linguistic model not yet available, skipping")
-    except FileNotFoundError:
-        print("    ⚠ Linguistic model not found, skipping")
+    # Linguistic + RF (extract features)
+    print("  Loading Linguistic + RF...")
+    linguistic_model = joblib.load("models/linguistic_rf.pkl")
+    nlp = spacy.load('en_core_web_sm')
+
+    print("    Extracting linguistic features... (this may take a few minutes)")
+    test_features = []
+    for text in tqdm(test_texts, desc="    Processing"):
+        features = extract_linguistic_features(text, nlp)
+        test_features.append(features)
+
+    test_features_df = pd.DataFrame(test_features)
+    linguistic_preds = linguistic_model.predict(test_features_df)
+
+    # Convert to numeric if needed
+    if isinstance(linguistic_preds[0], str):
+        linguistic_preds = le.transform(linguistic_preds)
+
+    print(f"    ✓ Linguistic predictions: {len(linguistic_preds)}")
 
     # BERT
     print("  Loading BERT...")
@@ -142,7 +235,7 @@ def analyze_errors(test_df, categories, le):
     test_texts = test_df['cleaned_text'].tolist()
     true_labels = le.transform(test_df['category'].tolist())
 
-    tfidf_preds, _, bert_preds = get_predictions_all_models(test_texts, le)
+    tfidf_preds, linguistic_preds, bert_preds = get_predictions_all_models(test_texts, le)
 
     results = []
 
@@ -154,23 +247,29 @@ def analyze_errors(test_df, categories, le):
         tfidf_cat = categories[tfidf_pred]
         tfidf_correct = (tfidf_pred == true_label)
 
+        linguistic_pred = linguistic_preds[idx]
+        linguistic_cat = categories[linguistic_pred]
+        linguistic_correct = (linguistic_pred == true_label)
+
         bert_pred = bert_preds[idx]
         bert_cat = categories[bert_pred]
         bert_correct = (bert_pred == true_label)
 
-        # Agreement
-        models_agree = (tfidf_pred == bert_pred)
-        all_correct = tfidf_correct and bert_correct
-        all_wrong = (not tfidf_correct) and (not bert_correct)
+        # Agreement (all three models)
+        all_three_agree = (tfidf_pred == linguistic_pred == bert_pred)
+        all_correct = tfidf_correct and linguistic_correct and bert_correct
+        all_wrong = (not tfidf_correct) and (not linguistic_correct) and (not bert_correct)
 
         results.append({
             'index': idx,
             'true_category': true_cat,
             'tfidf_pred': tfidf_cat,
+            'linguistic_pred': linguistic_cat,
             'bert_pred': bert_cat,
             'tfidf_correct': tfidf_correct,
+            'linguistic_correct': linguistic_correct,
             'bert_correct': bert_correct,
-            'models_agree': models_agree,
+            'all_three_agree': all_three_agree,
             'all_correct': all_correct,
             'all_wrong': all_wrong,
             'text_length': len(test_df.iloc[idx]['cleaned_text']),
@@ -188,12 +287,13 @@ def identify_error_types(results_df, categories):
     print("\n[4/8] Identifying error types...")
 
     error_types = {
-        'easy_both_correct': results_df[results_df['all_correct']],
-        'hard_both_wrong': results_df[results_df['all_wrong']],
-        'tfidf_only_wrong': results_df[(~results_df['tfidf_correct']) & (results_df['bert_correct'])],
-        'bert_only_wrong': results_df[(results_df['tfidf_correct']) & (~results_df['bert_correct'])],
-        'disagree_both_correct': results_df[results_df['models_agree'] & results_df['all_correct']],
-        'disagree_both_wrong': results_df[~results_df['models_agree'] & results_df['all_wrong']],
+        'all_three_correct': results_df[results_df['all_correct']],
+        'all_three_wrong': results_df[results_df['all_wrong']],
+        'tfidf_only_wrong': results_df[(~results_df['tfidf_correct']) & results_df['linguistic_correct'] & results_df['bert_correct']],
+        'linguistic_only_wrong': results_df[results_df['tfidf_correct'] & (~results_df['linguistic_correct']) & results_df['bert_correct']],
+        'bert_only_wrong': results_df[results_df['tfidf_correct'] & results_df['linguistic_correct'] & (~results_df['bert_correct'])],
+        'all_three_agree_correct': results_df[results_df['all_three_agree'] & results_df['all_correct']],
+        'all_three_agree_wrong': results_df[results_df['all_three_agree'] & results_df['all_wrong']],
     }
 
     print(f"\n  Error Type Distribution:")
@@ -216,10 +316,12 @@ def analyze_genre_confusions(results_df, categories):
 
     true_labels = le.transform(results_df['true_category'])
     tfidf_preds = le.transform(results_df['tfidf_pred'])
+    linguistic_preds = le.transform(results_df['linguistic_pred'])
     bert_preds = le.transform(results_df['bert_pred'])
 
-    # TF-IDF confusions
+    # Confusion matrices for all three models
     cm_tfidf = confusion_matrix(true_labels, tfidf_preds)
+    cm_linguistic = confusion_matrix(true_labels, linguistic_preds)
     cm_bert = confusion_matrix(true_labels, bert_preds)
 
     # Find most confused pairs for BERT
@@ -244,7 +346,7 @@ def analyze_genre_confusions(results_df, categories):
     for _, row in confusion_df.head(10).iterrows():
         print(f"  {row['true']:12s} → {row['pred']:12s}: {row['count']:3d} ({row['pct']:4.1f}%)")
 
-    return confusion_df, cm_tfidf, cm_bert
+    return confusion_df, cm_tfidf, cm_linguistic, cm_bert
 
 
 def visualize_error_patterns(results_df, categories):
@@ -254,8 +356,8 @@ def visualize_error_patterns(results_df, categories):
     import os
     os.makedirs("results/error_analysis", exist_ok=True)
 
-    # 1. Text length vs accuracy
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    # 1. Text length vs accuracy (3 models)
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
     # TF-IDF accuracy by text length
     tfidf_acc_by_length = results_df.groupby(
@@ -272,12 +374,27 @@ def visualize_error_patterns(results_df, categories):
     ax.axhline(y=0.8658, color='red', linestyle='--', label='Overall TF-IDF (86.58%)')
     ax.legend()
 
+    # Linguistic accuracy by text length
+    linguistic_acc_by_length = results_df.groupby(
+        pd.cut(results_df['text_length'], bins=[0, 500, 1000, 2000, 5000, 10000])
+    )['linguistic_correct'].mean()
+
+    ax = axes[1]
+    linguistic_acc_by_length.plot(kind='bar', ax=ax, color='#9b59b6', alpha=0.7)
+    ax.set_title('Linguistic Accuracy by Text Length', fontsize=12, weight='bold')
+    ax.set_xlabel('Text Length (chars)', fontsize=10)
+    ax.set_ylabel('Accuracy', fontsize=10)
+    ax.set_ylim([0, 1])
+    ax.grid(axis='y', alpha=0.3)
+    ax.axhline(y=0.6500, color='red', linestyle='--', label='Overall Linguistic (65.00%)')
+    ax.legend()
+
     # BERT accuracy by text length
     bert_acc_by_length = results_df.groupby(
         pd.cut(results_df['text_length'], bins=[0, 500, 1000, 2000, 5000, 10000])
     )['bert_correct'].mean()
 
-    ax = axes[1]
+    ax = axes[2]
     bert_acc_by_length.plot(kind='bar', ax=ax, color='#2ecc71', alpha=0.7)
     ax.set_title('BERT Accuracy by Text Length', fontsize=12, weight='bold')
     ax.set_xlabel('Text Length (chars)', fontsize=10)
@@ -291,17 +408,18 @@ def visualize_error_patterns(results_df, categories):
     plt.savefig("results/error_analysis/accuracy_by_length.png", dpi=300, bbox_inches='tight')
     print("  ✓ Saved: results/error_analysis/accuracy_by_length.png")
 
-    # 2. Error type distribution
-    fig, ax = plt.subplots(figsize=(10, 6))
+    # 2. Error type distribution (all three models)
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     error_counts = {
-        'Both\nCorrect': results_df['all_correct'].sum(),
-        'Both\nWrong': results_df['all_wrong'].sum(),
-        'TF-IDF only\nWrong': ((~results_df['tfidf_correct']) & results_df['bert_correct']).sum(),
-        'BERT only\nWrong': (results_df['tfidf_correct'] & (~results_df['bert_correct'])).sum()
+        'All Three\nCorrect': results_df['all_correct'].sum(),
+        'All Three\nWrong': results_df['all_wrong'].sum(),
+        'TF-IDF only\nWrong': ((~results_df['tfidf_correct']) & results_df['linguistic_correct'] & results_df['bert_correct']).sum(),
+        'Linguistic only\nWrong': (results_df['tfidf_correct'] & (~results_df['linguistic_correct']) & results_df['bert_correct']).sum(),
+        'BERT only\nWrong': (results_df['tfidf_correct'] & results_df['linguistic_correct'] & (~results_df['bert_correct'])).sum()
     }
 
-    colors = ['#2ecc71', '#e74c3c', '#3498db', '#f39c12']
+    colors = ['#2ecc71', '#e74c3c', '#3498db', '#9b59b6', '#f39c12']
     bars = ax.bar(error_counts.keys(), error_counts.values(), color=colors, alpha=0.7, edgecolor='black')
 
     for bar in bars:
@@ -311,7 +429,7 @@ def visualize_error_patterns(results_df, categories):
                f'{int(height)}\n({pct:.1f}%)',
                ha='center', va='bottom', fontsize=10, weight='bold')
 
-    ax.set_title('Model Agreement on Test Set', fontsize=14, weight='bold')
+    ax.set_title('Model Agreement on Test Set (All Three Models)', fontsize=14, weight='bold')
     ax.set_ylabel('Count', fontsize=12)
     ax.grid(axis='y', alpha=0.3)
 
@@ -324,20 +442,20 @@ def identify_hybrid_articles(results_df, categories):
     """Identify potentially hybrid articles (borderline cases)."""
     print("\n[7/8] Identifying hybrid articles...")
 
-    # Hybrid criteria:
-    # 1. Both models wrong
-    # 2. Models disagree
+    # Hybrid criteria for three models:
+    # 1. All three models wrong
+    # 2. Models disagree (not all three agree)
     # 3. Different plausible predictions
 
     hybrids = results_df[
         (results_df['all_wrong']) |
-        (~results_df['models_agree'])
+        (~results_df['all_three_agree'])
     ].copy()
 
     # Add hybrid type
-    hybrids.loc[:, 'hybrid_type'] = 'both_wrong'
-    hybrids.loc[hybrids['all_wrong'], 'hybrid_type'] = 'both_wrong'
-    hybrids.loc[~hybrids['models_agree'] & ~hybrids['all_wrong'], 'hybrid_type'] = 'disagree_one_correct'
+    hybrids.loc[:, 'hybrid_type'] = 'all_wrong'
+    hybrids.loc[hybrids['all_wrong'], 'hybrid_type'] = 'all_wrong'
+    hybrids.loc[~hybrids['all_three_agree'] & ~hybrids['all_wrong'], 'hybrid_type'] = 'disagree_mixed'
 
     print(f"\n  Found {len(hybrids)} potential hybrid articles ({len(hybrids)/len(results_df)*100:.1f}%)")
 
@@ -347,8 +465,9 @@ def identify_hybrid_articles(results_df, categories):
 
     for idx, row in hybrids.head(5).iterrows():
         print(f"  [{row['hybrid_type']}] True: {row['true_category']}")
-        print(f"    TF-IDF predicted: {row['tfidf_pred']}")
-        print(f"    BERT predicted:   {row['bert_pred']}")
+        print(f"    TF-IDF predicted:     {row['tfidf_pred']}")
+        print(f"    Linguistic predicted: {row['linguistic_pred']}")
+        print(f"    BERT predicted:       {row['bert_pred']}")
         print(f"    Text preview: {row['text_preview'][:150]}...")
         print()
 
@@ -366,12 +485,14 @@ def create_error_summary(results_df, confusion_df, categories):
     summary = {
         'total_samples': len(results_df),
         'tfidf_accuracy': float(results_df['tfidf_correct'].mean()),
+        'linguistic_accuracy': float(results_df['linguistic_correct'].mean()),
         'bert_accuracy': float(results_df['bert_correct'].mean()),
-        'model_agreement': float(results_df['models_agree'].mean()),
-        'both_correct': int(results_df['all_correct'].sum()),
-        'both_wrong': int(results_df['all_wrong'].sum()),
-        'tfidf_only_wrong': int(((~results_df['tfidf_correct']) & (results_df['bert_correct'])).sum()),
-        'bert_only_wrong': int(((results_df['tfidf_correct']) & (~results_df['bert_correct'])).sum()),
+        'all_three_agree': float(results_df['all_three_agree'].mean()),
+        'all_correct': int(results_df['all_correct'].sum()),
+        'all_wrong': int(results_df['all_wrong'].sum()),
+        'tfidf_only_wrong': int(((~results_df['tfidf_correct']) & results_df['linguistic_correct'] & results_df['bert_correct']).sum()),
+        'linguistic_only_wrong': int((results_df['tfidf_correct'] & (~results_df['linguistic_correct']) & results_df['bert_correct']).sum()),
+        'bert_only_wrong': int((results_df['tfidf_correct'] & results_df['linguistic_correct'] & (~results_df['bert_correct'])).sum()),
         'top_confusions': confusion_df.head(10).to_dict('records')
     }
 
@@ -395,7 +516,7 @@ def main():
     error_types = identify_error_types(results_df, categories)
 
     # Analyze confusions
-    confusion_df, cm_tfidf, cm_bert = analyze_genre_confusions(results_df, categories)
+    confusion_df, cm_tfidf, cm_linguistic, cm_bert = analyze_genre_confusions(results_df, categories)
 
     # Visualize
     visualize_error_patterns(results_df, categories)
@@ -415,11 +536,12 @@ def main():
     print("="*80)
     print(f"\nKey Statistics:")
     print(f"  Total samples: {summary['total_samples']}")
-    print(f"  TF-IDF accuracy: {summary['tfidf_accuracy']:.4f}")
-    print(f"  BERT accuracy: {summary['bert_accuracy']:.4f}")
-    print(f"  Model agreement: {summary['model_agreement']:.4f}")
-    print(f"  Both correct: {summary['both_correct']} ({summary['both_correct']/summary['total_samples']*100:.1f}%)")
-    print(f"  Both wrong: {summary['both_wrong']} ({summary['both_wrong']/summary['total_samples']*100:.1f}%)")
+    print(f"  TF-IDF accuracy:     {summary['tfidf_accuracy']:.4f}")
+    print(f"  Linguistic accuracy: {summary['linguistic_accuracy']:.4f}")
+    print(f"  BERT accuracy:       {summary['bert_accuracy']:.4f}")
+    print(f"  All three agree:     {summary['all_three_agree']:.4f}")
+    print(f"  All correct: {summary['all_correct']} ({summary['all_correct']/summary['total_samples']*100:.1f}%)")
+    print(f"  All wrong:   {summary['all_wrong']} ({summary['all_wrong']/summary['total_samples']*100:.1f}%)")
     print(f"\nAll results saved to: results/error_analysis/")
     print("="*80 + "\n")
 

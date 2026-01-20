@@ -1,12 +1,14 @@
 {
   "total_samples": 5000,
   "tfidf_accuracy": 0.864,
+  "linguistic_accuracy": 0.8286,
   "bert_accuracy": 0.9272,
-  "model_agreement": 0.8618,
-  "both_correct": 4160,
-  "both_wrong": 204,
-  "tfidf_only_wrong": 476,
-  "bert_only_wrong": 160,
+  "all_three_agree": 0.7342,
+  "all_correct": 3610,
+  "all_wrong": 105,
+  "tfidf_only_wrong": 311,
+  "linguistic_only_wrong": 550,
+  "bert_only_wrong": 123,
   "top_confusions": [
     {
       "true": "Analytical",

@@ -1,0 +1,82 @@
+{
+  "mcnemar_tests": [
+    {
+      "model1": "TF-IDF",
+      "model2": "BERT",
+      "a": 4160,
+      "b": 160,
+      "c": 476,
+      "d": 204,
+      "chi2_statistic": 156.01415094339623,
+      "p_value": 0.0,
+      "significant": 1
+    },
+    {
+      "model1": "TF-IDF",
+      "model2": "Linguistic",
+      "a": 3733,
+      "b": 587,
+      "c": 410,
+      "d": 270,
+      "chi2_statistic": 31.069207622868607,
+      "p_value": 2.489901573810016e-08,
+      "significant": 1
+    },
+    {
+      "model1": "Linguistic",
+      "model2": "BERT",
+      "a": 3921,
+      "b": 222,
+      "c": 715,
+      "d": 142,
+      "chi2_statistic": 258.3393810032017,
+      "p_value": 0.0,
+      "significant": 1
+    }
+  ],
+  "bootstrap_ci": {
+    "tfidf": {
+      "accuracy": {
+        "mean": 0.8639928,
+        "ci_lower": 0.855,
+        "ci_upper": 0.8722
+      },
+      "f1_macro": {
+        "mean": 0.8631958561054323,
+        "ci_lower": 0.8541599427636776,
+        "ci_upper": 0.8716669460840503
+      }
+    },
+    "linguistic": {
+      "accuracy": {
+        "mean": 0.8285152,
+        "ci_lower": 0.8177949999999999,
+        "ci_upper": 0.83941
+      },
+      "f1_macro": {
+        "mean": 0.8273787817267076,
+        "ci_lower": 0.8164517710948277,
+        "ci_upper": 0.8383441474688623
+      }
+    },
+    "bert": {
+      "accuracy": {
+        "mean": 0.9273132000000001,
+        "ci_lower": 0.920195,
+        "ci_upper": 0.9342050000000001
+      },
+      "f1_macro": {
+        "mean": 0.9280616086451082,
+        "ci_lower": 0.9211524646151724,
+        "ci_upper": 0.935149259392618
+      }
+    }
+  },
+  "model_agreement": {
+    "tfidf_vs_bert": 0.8269593869424003,
+    "tfidf_vs_linguistic": 0.7278557907835361,
+    "linguistic_vs_bert": 0.7519690829461892
+  },
+  "n_samples": 5000,
+  "n_bootstrap": 1000
+}
