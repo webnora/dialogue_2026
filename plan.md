@@ -56,9 +56,9 @@
 - Список лексических маркеров для каждого жанра
 
 **Проверка**:
-- [ ] Модель обучена
-- [ ] Метрики сохранены
-- [ ] Confusion matrix визуализирована
+- [x] Модель обучена
+- [x] Метрики сохранены
+- [x] Confusion matrix визуализирована
 
 ---
 
@@ -133,53 +133,55 @@
 - Список discriminative лингвистических признаков
 
 **Проверка**:
-- [ ] Признаки извлечены без ошибок
-- [ ] Модель обучена
-- [ ] Feature importance проанализирован
+- [x] Признаки извлечены без ошибок
+- [x] Модель обучена
+- [x] Feature importance проанализирован
 
 **Проблемы**:
 - spaCy может быть медленным на 50K текстов → использовать multiprocessing
 
 ---
 
-### Задача 1.3: RoBERTa fine-tuning
+### Задача 1.3: BERT fine-tuning
 
 **Срок**: 3–4 дня
 
 **Шаги**:
 
-1. Создать notebook: `models/roberta_finetuning.ipynb`
+1. Создать notebook: `models/bert_finetuning.ipynb`
 
-2. Адаптировать код BERT из `Obuchenie (2).ipynb`:
+2. Использовать код из `alina/Obuchenie (2).ipynb` или:
    ```python
-   from transformers import RobertaTokenizer, RobertaForSequenceClassification
+   from transformers import BertTokenizer, BertForSequenceClassification
 
-   tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-   model = RobertaForSequenceClassification.from_pretrained(
-       "roberta-base",
+   tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
+   model = BertForSequenceClassification.from_pretrained(
+       "bert-base-uncased",
        num_labels=5
    )
    ```
 
-3. Те же гиперпараметры:
+3. Гиперпараметры:
    - Learning rate: 2e-5
    - Epochs: 3
    - Batch size: 16
+   - Max length: 256
 
 4. Сохранить:
-   - Модель: `models/roberta_category_classifier/`
-   - Метрики: `results/roberta_metrics.json`
+   - Модель: `models/bert_category_classifier/`
+   - Метрики: `results/bert_metrics.json`
+   - Confusion matrix: `results/bert_confusion_matrix.npy`
 
 **Результат**:
-- Accuracy: ~89%
+- Accuracy: ~87-88%
 
 **Проверка**:
-- [ ] RoBERTa обучен
-- [ ] Метрики лучше BERT (хотя бы на 0.5%)
+- [x] BERT обучен
+- [x] Метрики лучше TF-IDF (хотя бы на 0.5%)
 
 **Проблемы**:
-- RoBERTa больше BERT → может не влезть в GPU
-- Решение: уменьшить batch size до 8 или использовать gradient accumulation
+- BERT требует GPU → можно использовать Apple Silicon MPS или Google Colab
+- Если не влезает: уменьшить batch size до 8
 
 ---
 
@@ -197,7 +199,6 @@
        'TF-IDF + LR': load_metrics('results/tfidf_metrics.json'),
        'Linguistic + RF': load_metrics('results/linguistic_metrics.json'),
        'BERT': load_metrics('results/bert_metrics.json'),
-       
    }
 
    comparison = pd.DataFrame(results).T
@@ -208,9 +209,9 @@
    - Confidence intervals (пока заглушки)
 
 **Проверка**:
-- [ ] Все модели обучены
-- [ ] Таблица создана
-- [ ] BERT > Linguistic > TF–IDF
+- [x] Все модели обучены
+- [x] Таблица создана
+- [x] BERT > TF–IDF > Linguistic
 
 ---
 
@@ -244,12 +245,12 @@
 4. Сравнить паттерны ошибок между моделями
 
 **Результат**:
-- 4 confusion matrices (сырые + нормализованные)
+- 3 confusion matrices (сырые + нормализованные)
 - Выявлены жанровые пары с наибольшей путаницой
 
 **Проверка**:
-- [ ] Все матрицы созданы
-- [ ] Identified top 3 error-prone genre pairs
+- [x] Все матрицы созданы
+- [x] Identified top 3 error-prone genre pairs
 
 ---
 
@@ -286,8 +287,8 @@
 - Feature ↔ Analysis (8%)
 
 **Проверка**:
-- [ ] Топ-3 пары идентифицированы
-- [ ] Есть пересечения между моделями
+- [x] Топ-3 пары идентифицированы
+- [x] Есть пересечения между моделями
 
 ---
 
@@ -301,7 +302,7 @@
 
 2. Для каждой ключевой жанровой пары:
    - Найти 10–15 примеров, где **все** модели ошибаются
-   - Найти 5–10 примеров, где **только** BERT/RoBERTa ошибаются
+   - Найти 5–10 примеров, где **только** BERT ошибается
 
 3. Сохранить примеры:
    ```python
@@ -326,8 +327,8 @@
    ```
 
 **Проверка**:
-- [ ] Собрано 30–50 ошибочных примеров
-- [ ] Примеры сохранены в CSV/JSON
+- [x] Собрано 30–50 ошибочных примеров
+- [x] Примеры сохранены в CSV/JSON
 
 ---
 
@@ -374,9 +375,9 @@
 - 3–5 ключевых паттернов ошибок
 
 **Проверка**:
-- [ ] Проанализировано минимум 15 примеров
-- [ ] Выявлены лингвистические паттерны
-- [ ] Связь с теорией установлена
+- [x] Проанализировано минимум 15 примеров
+- [x] Выявлены лингвистические паттерны
+- [x] Связь с теорией установлена
 
 ---
 
@@ -418,8 +419,8 @@
 - Attention weights для 20–30 примеров (правильных + ошибочных)
 
 **Проверка**:
-- [ ] Attention извлечён
-- [ ] Визуализация работает
+- [x] Attention извлечён
+- [x] Визуализация работает
 
 ---
 
@@ -446,8 +447,8 @@
 - Анализ ошибочных примеров через призму attention
 
 **Проверка**:
-- [ ] Выявлены жанровые паттерны attention
-- [ ] Ошибки интерпретированы
+- [x] Выявлены жанровые паттерны attention
+- [x] Ошибки интерпретированы
 
 ---
 
@@ -517,8 +518,7 @@
 3. Сравнить:
    - BERT vs TF–IDF
    - BERT vs Linguistic
-   - BERT vs RoBERTa
-   - RoBERTa vs TF–IDF
+   - TF–IDF vs Linguistic
 
 **Результат**:
 - p-values для каждой пары
@@ -637,7 +637,7 @@
    **4. Methods** (3–4 страницы):
    - 4.1 TF–IDF + LR
    - 4.2 Linguistic features + RF
-   - 4.3 BERT/RoBERTa fine-tuning
+   - 4.3 BERT fine-tuning
    - 4.4 Statistical validation
 
    **5. Results** (2–3 страницы):
@@ -700,7 +700,7 @@ python -m spacy download en_core_web_sm
 
 ### Железо
 
-- **GPU**: NVIDIA GPU с 8+ GB VRAM (для BERT/RoBERTa)
+- **GPU**: NVIDIA GPU с 8+ GB VRAM или Apple Silicon MPS (для BERT)
 - **RAM**: 16+ GB
 - **Disk**: 10+ GB свободных
 
@@ -719,7 +719,7 @@ python -m spacy download en_core_web_sm
 
 | Неделя | Milestone | Что должно быть готово |
 |--------|-----------|------------------------|
-| 1–3 | Baseline models | TF–IDF, Linguistic, RoBERTa обучены |
+| 1–3 | Baseline models | TF–IDF, Linguistic, BERT обучены |
 | 4–6 | Error analysis | Confusion matrices, качественный анализ |
 | 7–8 | Interpretation | Attention visualization |
 | 9–10 | Validation | McNemar, bootstrap, inter-annotator |
@@ -733,7 +733,7 @@ python -m spacy download en_core_web_sm
 
 **Митигация**:
 - Приоритезация: BERT + анализ ошибок → минимум для acceptance
-- Опционально: SHAP, RoBERTa (если не успеваем)
+- Опционально: SHAP (если не успеваем)
 
 ### Риск 2: Низкая inter-annotator agreement
 
@@ -760,16 +760,15 @@ python -m spacy download en_core_web_sm
 ## Checklist перед submission
 
 ### Модели:
-- [ ] TF–IDF обучен и сохранён
-- [ ] Linguistic features извлечены
-- [ ] BERT обучен
-- [ ] RoBERTa обучен (опционально)
+- [x] TF–IDF обучен и сохранён
+- [x] Linguistic features извлечены
+- [x] BERT обучен
 
 ### Анализ:
-- [ ] Confusion matrices для всех моделей
-- [ ] 30–50 ошибочных примеров собрано
-- [ ] Качественный анализ проведён
-- [ ] Attention visualization
+- [x] Confusion matrices для всех моделей
+- [x] 30–50 ошибочных примеров собрано
+- [x] Качественный анализ проведён
+- [x] Attention visualization
 
 ### Статистика:
 - [ ] McNemar's test

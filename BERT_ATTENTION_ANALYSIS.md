@@ -185,7 +185,7 @@ results/
 1. **Sample size:** Only 50 texts analyzed for attention (computationally expensive)
 2. **Interpretation:** Attention ≠ causation (correlation with classification)
 3. **Token-level analysis:** No phrase-level or sentence-level attention aggregation
-4. **Single model:** Only BERT-base analyzed (not RoBERTa or larger variants)
+4. **Single model:** Only BERT-base analyzed
 
 ---
 
