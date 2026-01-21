@@ -1,0 +1,397 @@
+%
+% File dialogue-2022.tex
+%
+% Made by Serge Sharoff following the style guide file for COLING-2020,
+% see the full story in https://coling2020.org/coling2020.zip
+
+\documentclass[11pt]{article}
+
+\usepackage{dialogue}
+
+\usepackage{ifxetex}
+\ifxetex
+    \usepackage{fontspec}
+    \setromanfont{Times New Roman}
+\else
+  \usepackage{cmap}
+  \usepackage[T2A,T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{times}
+  \usepackage{latexsym}
+  \usepackage{substitutefont}
+  \substitutefont{T2A}{\familydefault}{cmr}
+\fi
+
+\usepackage[russian,british]{babel}
+\usepackage{url}
+\usepackage{pgf}
+
+%% For proper formatting of linguistic examples use
+%% https://anorien.csc.warwick.ac.uk/mirrors/CTAN/macros/latex/contrib/covington/covington.pdf
+\usepackage{covington} %% comment it out if you do not require this option
+
+%% To make citations and references clickable
+\usepackage{hyperref}
+
+\renewcommand{\ttdefault}{lmtt}
+
+%% \dialogfinalcopy % Uncomment this line for the final submission
+
+
+\title{Instructions for Dialogue-2022 Proceedings}
+
+\author{First Author \\
+  Affiliation \\
+  Address \\
+  {\tt email@domain} \\\And
+  Second Author \\
+  Affiliation \\
+  Address \\
+  {\tt email@domain} \\}
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+  This document contains the instructions for preparing a paper submitted
+  to DIALOGUE-2022 or accepted for publication in its proceedings. The document itself
+  conforms to its own specifications, and is therefore an example of
+  what your manuscript should look like. These instructions should be
+  used for both papers submitted for review and for final versions of
+  accepted papers. Authors are asked to conform to all the directions
+  reported in this document.
+  
+  \textbf{Keywords:} Latex format
+  
+  \textbf{DOI:} 10.28995/2075-7182-2022-20-XX-XX
+\end{abstract}
+
+\selectlanguage{russian}
+\begin{center}
+  \russiantitle{Форматирование докладов на ДИАЛОГ-2022}
+
+  \medskip \setlength\tabcolsep{2cm}
+  \begin{tabular}{cc}
+    \textbf{Первый автор} & \textbf{Второй автор}\\
+      Место работы & Место работы\\
+      Адрес & Адрес \\
+      {\tt email@domain} &  {\tt email@domain}
+  \end{tabular}
+  \medskip
+\end{center}
+
+\begin{abstract}
+  Инструкция для подачи докладов на Диалог-2022. Этот документ сам
+  соответствует своим спецификациям и, следовательно, является примером
+  того, \texttt{как должен выглядеть ваш доклад}.
+  
+  \textbf{Ключевые слова:} Форматирование в Латехе
+\end{abstract}
+\selectlanguage{british}
+
+\section{Credits}
+
+This document has been adapted by Serge Sharoff from the instructions for  COLING-2020 proceedings compiled by Fei Liu and Liang Huang, which are, in turn, based on the instructions for COLING-2018 proceedings compiled by Xiaodan Zhu and Zhiyuan Liu, which are, in turn, based on the instructions for COLING-2016 proceedings compiled by Hitoshi Isahara and Masao Utiyama, which are, in turn, based on the instructions for COLING-2014 proceedings compiled by Joachim Wagner, Liadh Kelly and Lorraine Goeuriot, which are, in turn, based on the instructions for earlier ACL proceedings, including those for ACL-2014 by Alexander Koller and Yusuke Miyao, those for ACL-2012 by Maggie Li and Michael White, those for ACL-2010 by Jing-Shing Chang and Philipp Koehn, those for ACL-2008 by Johanna D. Moore, Simone Teufel, James Allan, and Sadaoki Furui, those for ACL-2005 by Hwee Tou Ng and Kemal Oflazer, those for ACL-2002 by Eugene Charniak and Dekang Lin, and earlier ACL and EACL formats. Those versions were written by several people, including John Chen, Henry S. Thompson and Donald Walker. Additional elements were taken from the formatting instructions of the {\em International Joint Conference on Artificial Intelligence}.
+
+
+\section{Introduction}
+\label{intro}
+
+%
+% The following footnote without marker is needed for the camera-ready
+% version of the paper.
+% Comment out the instructions (first text) and uncomment the 8 lines
+% under "final paper" for your variant of English.
+% 
+
+The following instructions are directed to authors of papers submitted
+to DIALOGUE-2022 or accepted for publication in its proceedings. All
+authors are required to adhere to these specifications. Authors are
+required to provide a Portable Document Format (PDF) version of their
+papers. \textbf{The proceedings are designed for printing on A4
+  paper.}
+
+
+\section{General Instructions}
+
+Manuscripts must be in single-column format. {\bf Type single-spaced.}  Start all
+pages directly under the top margin. See the guidelines later
+regarding formatting the first page. The lengths of manuscripts
+should not exceed the maximum page limit described in Section~\ref{sec:length}.
+Do not number the pages.
+
+
+\subsection{Electronically-available Resources}
+
+We strongly prefer that you prepare your PDF files using \LaTeX{} with
+the official DIALOGUE-2022 style file (dialogue.sty). 
+
+
+
+\subsection{Format of Electronic Manuscript}
+\label{sect:pdf}
+
+For the production of the electronic manuscript you must use Adobe's
+Portable Document Format (PDF). PDF files are usually produced from
+\LaTeX{} using the \textit{pdflatex} command. It is also possible to use \textit{xelatex}, if the use of the full range of UTF8 characters is important for your paper.
+
+It is of utmost importance to specify the \textbf{A4 format} (21 cm
+x 29.7 cm) when formatting the paper. When working with
+{\tt dvips}, for instance, one should specify {\tt -t a4}.
+
+If you cannot meet the above requirements
+for the
+production of your electronic submission, please contact the
+publication co-chairs as soon as possible.
+
+
+\subsection{Layout}
+\label{ssec:layout}
+
+Format manuscripts with a single column to a page, in the manner these
+instructions are formatted. The exact dimensions for a page on A4
+paper are:
+
+\begin{itemize}
+\item Left and right margins: 2.5 cm
+\item Top margin: 2.5 cm
+\item Bottom margin: 2.5 cm
+\item Width: 16.0 cm
+\item Height: 24.7 cm
+\end{itemize}
+
+\noindent Papers should not be submitted on any other paper size.
+If you cannot meet the above requirements for
+the production of your electronic submission, please contact the
+publication co-chairs above as soon as possible.
+
+
+\subsection{Fonts}
+
+For reasons of uniformity, Adobe's {\bf Times Roman} font should be
+used. In \LaTeX2e{} this is accomplished by putting
+
+\begin{quote}
+\begin{verbatim}
+\usepackage{times}
+\usepackage{latexsym}
+\end{verbatim}
+\end{quote}
+in the preamble. If Times Roman is unavailable, use {\bf Computer
+  Modern Roman} (\LaTeX2e{}'s default).  Note that the latter is about
+  10\% less dense than Adobe's Times Roman font.
+
+The {\bf Times New Roman} font, which is configured for us in the
+Microsoft Word template and which some Linux
+distributions offer for installation, can be used as well.
+
+For examples in Cyrillic it is recommended to use either the {\bf Cyrillic} version of Computer
+  Modern Roman (which is shipped with most Latex distributions) or {\bf Xelatex}, which relies on the fonts installed on the computer.
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{|l|rl|}
+\hline \bf Type of Text & \bf Font Size & \bf Style \\ \hline
+paper title & 15 pt & bold \\
+author names & 12 pt & bold \\
+author affiliation & 12 pt & \\
+the word ``Abstract'' & 9 pt & bold \\
+section titles & 12 pt & bold \\
+document text & 11 pt  &\\
+captions & 11 pt & \\
+sub-captions & 9 pt & \\
+abstract text & 9 pt & \\
+bibliography & 10 pt & \\
+footnotes & 9 pt & \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Font guide.}
+\label{tabFonts} 
+\end{table}
+
+\subsection{The First Page}
+\label{ssec:first}
+
+Centre the title, author's name(s) and affiliation(s) across
+the page.
+Do not use footnotes for affiliations. Do not include the
+paper ID number assigned during the submission process. 
+Do not include the authors' names or affiliations in the version submitted for review.
+
+{\bf Title}: Place the title centred at the top of the first page, in
+a 15 pt bold font. (For a complete guide to font sizes and styles,
+see Table~\ref{tabFonts}.) Long titles should be typed on two lines
+without a blank line intervening. Approximately, put the title at 2.5
+cm from the top of the page, followed by a blank line, then the
+author's names(s), and the affiliation on the following line. Do not
+use only initials for given names (middle initials are allowed). Do
+not format surnames in all capitals (e.g., use ``Schlangen'' not
+``SCHLANGEN'').  Do not format title and section headings in all
+capitals as well except for proper names (such as ``BLEU'') that are
+conventionally in all capitals.  The affiliation should contain the
+author's complete address, and if possible, an electronic mail
+address. Start the body of the first page 7.5 cm from the top of the
+page.
+
+The title, author names and addresses should be completely identical
+to those entered to the electronical paper submission website in order
+to maintain the consistency of author information among all
+publications of the conference. If they are different, the publication
+co-chairs may resolve the difference without consulting with you; so it
+is in your own interest to double-check that the information is
+consistent.
+
+{\bf Abstract}: Type the abstract between addresses and main body.
+The width of the abstract text should be
+smaller than main body by about 0.6 cm on each side.
+Centre the word {\bf Abstract} in a 9 pt bold
+font above the body of the abstract. The abstract should be a concise
+summary of the general thesis and conclusions of the paper. It should
+be no longer than 200 words. The abstract text should be in 9 pt font.
+The Russian abstrat needs to be in the appropriate font encoding, i.e. after
+\begin{verbatim}
+\selectlanguage{russian}
+\end{verbatim}
+
+
+{\bf Text}: Begin typing the main body of the text immediately after
+the abstract, observing the single-column format as shown in 
+the present document. Do not include page numbers.
+
+{\bf Indent} when starting a new paragraph. Use 11 pt for text and 
+subsection headings, 12 pt for section headings and 15 pt for
+the title. 
+
+\textbf{Examples}: for linguistic examples please use the covington package:
+\begin{examples}
+\item \label{exDutch}
+            \gll Dit is een voorbeeldje     in het Nederlands.
+                 This is a {little example} in {}  Dutch.
+            \glt `This is a little example in Dutch.'
+            \glend
+\selectlanguage{russian}
+\item \label{exRussian}
+            \gll Пример на русском.
+                 example in Russian.
+            \glt `Russian example.'
+            \glend
+\selectlanguage{british}
+\end{examples}
+
+The examples can be referenced throughout the text as (\ref{exDutch}) vs (\ref{exRussian}).
+
+The covington package also provides a nice way for presenting linguistic features:
+
+\psr{\lfs{S}{tense:T}}{
+  \lfs{NP}{case:nom \\ number:N}
+  \lfs{VP}{tense:T \\ number:N}
+}
+
+\subsection{Sections}
+
+{\bf Headings}: Type and label section and subsection headings in the
+style shown on the present document.  Use numbered sections (Arabic
+numerals) in order to facilitate cross references. Number subsections
+with the section number and the subsection number separated by a dot,
+in Arabic numerals. Do not number subsubsections.
+
+\textbf{Please do not use anonymous citations} and do not include
+any of the following when submitting your paper for review:
+acknowledgements, project names, grant numbers, and names or URLs of
+resources or tools that have only been made publicly available in
+the last 3 weeks or are about to be made public and would compromise the anonymity of the submission.
+Papers that do not
+conform to these requirements may be rejected without review.
+These details can, however, be included in the camera-ready, final paper.
+
+In \LaTeX{}, for an anonymized submission, ensure that {\small\verb|\dialogfinalcopy|} at the top of this document is commented out.
+For a camera-ready submission, ensure that {\small\verb|\dialogfinalcopy|} at the top of this document is not commented out.
+
+
+\textbf{References}: Gather the full set of references together under
+the heading {\bf References}; place the section before any Appendices,
+unless they contain references. Use of full names for
+authors rather than initials is preferred.  
+
+The Bibtex style files provided follow the standard Harvard-style referencing format.  In particular, please use these examples for your Bibtex references:
+
+\begin{enumerate}
+	\item Example citing an article in a journal: \cite{Aho:72}.
+	\item Example citing an article in proceedings: \cite{borsch2011}.
+	\item Example citing an arxiv paper: \cite{rasooli-tetrault-2015}. 
+        \item
+          \ifxetex
+          Xelatex example citing publications in Cyrillic \cite{ljashevskaja09cyr,sitchinava05cyr},
+          \else
+          Publications in Cyrillic in transliteration \cite{ljashevskaja09translit,sitchinava05translit}. You need to use Xelatex for references in Cyrillic without transliteration.  
+          \fi
+\end{enumerate}
+
+{\bf Appendices}: Appendices, if any, directly follow the text and the
+references (but see above).  Letter them in sequence and provide an
+informative title: {\bf Appendix A. Title of Appendix}.
+
+\subsection{Footnotes}
+
+{\bf Footnotes}: Put footnotes at the bottom of the page and use 9 pt
+text. They may be numbered or referred to by asterisks or other
+symbols.\footnote{This is how a footnote should appear.} Footnotes
+should be separated from the text by a line.\footnote{Note the line
+separating the footnotes from the text.}
+
+\subsection{Graphics}
+
+{\bf Illustrations}: Place figures, tables, and photographs in the
+paper near where they are first discussed, rather than at the end, if
+possible. 
+
+{\bf Captions}: Provide a caption for every illustration; number each one
+sequentially in the form:  ``Figure 1. Caption of the Figure.'' ``Table 1.
+Caption of the Table.''  Type the captions of the figures and 
+tables below the body, using 11 pt text. See examples in Table~\ref{tabFonts} and Figure~\ref{figViolin}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.6\linewidth]{violin.pdf}
+  \caption{Example of a figure environment.}
+  \label{figViolin}
+\end{figure}
+
+Narrow graphics together with the single-column format may lead to
+large empty spaces,
+see for example the wide margins on both sides of Table~\ref{tabFonts}.
+If you have multiple graphics with related content, it may be
+preferable to combine them in one graphic.
+You can identify the sub-graphics with sub-captions below the
+sub-graphics numbered (a), (b), (c) etc.\ and using 9 pt text.
+The \LaTeX{} packages wrapfig, subfig, subtable and/or subcaption
+may be useful.
+
+
+\section{Length of Submission}
+\label{sec:length}
+
+The maximum submission length is 20,000 characters of content (not including Abstract and References).
+%% Authors of accepted papers will be given additional space in
+%% the camera-ready version to reflect space needed for changes stemming
+%% from reviewers comments.
+Papers that do not conform to the specified length and formatting requirements may be
+rejected without review.
+
+\section*{Acknowledgements}
+
+The acknowledgements should go immediately before the references.  Do
+not number the acknowledgements section. Do not include this section
+when submitting your paper for review.
+
+% include your own bib file like this:
+\bibliography{dialogue.bib}
+\bibliographystyle{dialogue}
+
+%\begin{thebibliography}{}
+
+%\end{thebibliography}
+
+\end{document}
