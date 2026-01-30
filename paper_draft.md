@@ -10,7 +10,7 @@
 
 Genre classification of journalistic texts is a fundamental task in computational linguistics with applications in content management, recommendation systems, and discourse analysis. While previous research has primarily focused on maximizing classification accuracy, less attention has been paid to what classification errors reveal about the nature of genre boundaries. This paper compares three levels of linguistic representation—lexical (TF-IDF), discourse-grammatical (hand-crafted linguistic features), and contextual-semantic (BERT)—on a corpus of 49,000 articles from The Guardian across five genres: News, Analytical, Feature, Editorial, and Review.
 
-Our results demonstrate that BERT achieves 87.64% accuracy, only marginally outperforming TF-IDF at 86.58%, while linguistic features significantly underperform at 65.00%. This 1.06% gap between BERT and TF-IDF indicates that approximately 99% of the genre signal is captured by lexical choice alone, challenging the assumption that complex contextual representations are necessary for genre classification. Error analysis reveals that 27.8% of articles occupy hybrid boundary zones where models systematically disagree, providing empirical evidence for gradient genre boundaries. Statistical validation using McNemar's test, bootstrap confidence intervals, and Cohen's Kappa confirms that all model differences are highly significant (p < 0.001) while showing substantial inter-model agreement (κ = 0.73–0.83). Attention analysis of BERT reveals genre-specific lexical markers that overlap substantially across genres, further supporting gradient boundaries. We conclude that genre is primarily a lexical phenomenon with permeable, overlapping boundaries rather than discrete categories.
+Our results demonstrate that TF-IDF achieves 86.73% accuracy on a cleaned corpus of 48,140 articles, with BERT achieving 87.64% accuracy and linguistic features underperforming at 65.00%. The 0.91% gap between BERT and TF-IDF indicates that approximately 99% of the genre signal is captured by lexical choice alone, challenging the assumption that complex contextual representations are necessary for genre classification. Error analysis reveals that 27.8% of articles occupy hybrid boundary zones where models systematically disagree, with Feature articles being most frequently confused with other genres (21.3% total confusion). Statistical validation using McNemar's test, bootstrap confidence intervals, and Cohen's Kappa confirms that all model differences are highly significant (p < 0.001) while showing substantial inter-model agreement (κ = 0.73–0.83). Attention analysis of BERT reveals genre-specific lexical markers that overlap substantially across genres, further supporting gradient boundaries. We conclude that genre is primarily a lexical phenomenon with permeable, overlapping boundaries rather than discrete categories.
 
 **Keywords**: genre classification, journalistic text, TF-IDF, BERT, error analysis, attention mechanisms, gradient boundaries
 
@@ -100,21 +100,50 @@ Our corpus consists of articles from *The Guardian*, a major British newspaper k
 
 ### 3.2 Data Processing
 
-The raw corpus consisted of approximately 50,000 articles. We applied the following preprocessing steps:
+The raw corpus consisted of 50,000 articles collected from The Guardian API. We applied rigorous preprocessing to ensure data quality and remove outliers that could distort genre classification:
 
-- **HTML removal**: Stripped HTML tags and special characters
-- **URL removal**: Removed hyperlinks and references
-- **Length filtering**: Excluded articles < 100 words or > 2,000 words
-- **Duplicate removal**: Removed near-duplicate articles (cosine similarity > 0.95)
+- **HTML and URL removal**: Stripped HTML tags, special characters, and hyperlinks using regular expressions
+- **Length filtering**: Excluded articles < 100 words (insufficient genre signal) and > 3,000 words (primarily live blogs and transcripts)
+- **Duplicate removal**: Removed exact duplicates (548 articles) and articles with identical titles (201 articles)
+- **Quality control**: Excluded articles with malformed text (e.g., "default" placeholders)
 
-After cleaning, the final corpus contains **49,127 articles** with approximately balanced genre distribution (~10,000 articles per genre).
+The length filtering specifically targeted live blogs—a format where journalists provide real-time updates during ongoing events. Live blogs typically exceed 3,000 words and exhibit hybrid characteristics mixing factual reporting, analysis, and chronological updates, making them unsuitable for clear genre categorization.
+
+Table 1 presents the corpus statistics after cleaning.
+
+**Table 1: Corpus Statistics After Cleaning**
+
+| Category    | Count  | Percentage | Mean Length (words) | Median Length (words) |
+|-------------|--------|------------|---------------------|----------------------|
+| Analytical  | 9,924  | 20.6%      | 793                 | 760                  |
+| Editorial   | 9,976  | 20.7%      | 628                 | 620                  |
+| Feature     | 9,281  | 19.3%      | 915                 | 845                  |
+| News        | 9,197  | 19.1%      | 738                 | 679                  |
+| Review      | 9,762  | 20.3%      | 780                 | 760                  |
+| **Total**   | **48,140** | **100%**  | **771**             | **704**              |
+
+The final corpus contains **48,140 articles** with a well-balanced genre distribution (range: 19.1-20.7%). Articles removed at each stage: 50 texts (< 100 words), 1,054 texts (> 3,000 words), 548 exact duplicates, 201 title duplicates. Total removal: 1,860 articles (3.7%).
 
 ### 3.3 Train-Validation-Test Split
 
-We split the data into:
-- **Training set**: 80% (39,302 articles) for model training
-- **Validation set**: 10% (4,912 articles) for hyperparameter tuning
-- **Test set**: 10% (4,913 articles) for final evaluation
+We split the data using stratified sampling to maintain genre distribution across all splits:
+
+- **Training set**: 80% (38,512 articles) for model training
+- **Validation set**: 10% (4,814 articles) for hyperparameter tuning
+- **Test set**: 10% (4,814 articles) for final evaluation
+
+Table 2 shows the genre distribution in the test set.
+
+**Table 2: Test Set Genre Distribution**
+
+| Category    | Test Set | Percentage |
+|-------------|----------|------------|
+| Analytical  | 992      | 20.6%      |
+| Editorial   | 998      | 20.7%      |
+| Feature     | 928      | 19.3%      |
+| News        | 920      | 19.1%      |
+| Review      | 976      | 20.3%      |
+| **Total**   | **4,814** | **100%**   |
 
 All error analysis and statistical validation were performed on the held-out test set to avoid data leakage.
 
@@ -130,57 +159,33 @@ We compare three classification approaches representing different levels of ling
 
 ### 4.1 Level 1: Lexical Representation (TF-IDF + Logistic Regression)
 
-**Representation**:
-- TF-IDF vectorization with `max_features=10,000`
-- Character n-grams from 1 to 2 (unigrams and bigrams)
-- L2 normalization
-- Stopwords removed using standard English stopword list
+We implement a purely lexical approach that represents documents as weighted bags of words, completely ignoring word order, syntax, and semantic context. The Term Frequency-Inverse Document Frequency (TF-IDF) representation captures word importance patterns within and across documents.
 
-**Classifier**: Logistic Regression with L2 regularization
-- Hyperparameter `C=10.0` selected via cross-validation
-- Multi-class classification using one-vs-rest strategy
-- Trained on 39,302 training examples
+Text preprocessing includes removing standard English stopwords and applying L2 normalization to document vectors. We extract 10,000 features consisting of character n-rams from 1 to 2 (unigrams and bigrams), which capture both individual words and character-level patterns (e.g., word beginnings and endings). This choice of character-level n-grams rather than word-level n-grams provides robustness to morphological variations and typos.
 
-**Rationale**: This represents a purely lexical approach that captures word frequency patterns while completely ignoring word order, syntax, and semantic context. It serves as a strong baseline reflecting the hypothesis that genre is primarily determined by vocabulary choice.
+For classification, we employ multinomial Logistic Regression with L2 regularization. The regularization strength hyperparameter C=10.0 was selected via 3-fold cross-validation on the training set. The model uses a one-vs-rest strategy for multi-class classification and was trained on 38,512 examples.
+
+This approach serves as our strong baseline, testing the hypothesis that journalistic genre is primarily determined by vocabulary choice rather than syntactic structure or semantic context. The TF-IDF representation's simplicity and interpretability make it a practical choice for many applications.
 
 ### 4.2 Level 2: Discourse-Grammatical Representation (Linguistic Features + Random Forest)
 
-**Features**: Ten hand-crafted linguistic features computed using spaCy (`en_core_web_sm`):
+We implement a theory-driven feature engineering approach based on discourse analysis and genre theory, computing ten hand-crafted linguistic features using spaCy (`en_core_web_sm`). These features operationalize key dimensions of journalistic style that prior literature identifies as genre-distinguishing.
 
-1. **Type-Token Ratio (TTR)**: `unique_words / total_words` — measures lexical diversity
-2. **Average Sentence Length**: mean words per sentence — measures syntactic complexity
-3. **First Person Pronoun Ratio**: count("I", "me", "my", "we", "us") / total_words
-4. **Second Person Pronoun Ratio**: count("you", "your") / total_words
-5. **Third Person Pronoun Ratio**: count("he", "she", "it", "they") / total_words
-6. **Modal Verb Ratio**: count("can", "could", "may", "might", "must", "shall", "should", "will", "would") / total_words
-7. **Hedge Ratio**: count("perhaps", "possibly", "maybe", "somewhat", "rather") / total_words
-8. **Stance Marker Ratio**: count("reportedly", "allegedly", "arguably", "supposedly") / total_words
-9. **Quote Ratio**: words in quotation marks / total_words
-10. **Reporting Verb Ratio**: count("said", "says", "told", "claimed", "stated", "announced", "declared") / total_words
+Lexical diversity is measured via Type-Token Ratio (TTR), calculated as the ratio of unique words to total words. Syntactic complexity is captured through average sentence length (mean words per sentence). Narrative stance dimensions include first person pronouns ("I", "me", "my", "we", "us"), second person pronouns ("you", "your"), and third person pronouns ("he", "she", "it", "they"). Epistemic stance is operationalized through modal verbs ("can", "could", "may", "might", "must", "shall", "should", "will", "would"), hedges ("perhaps", "possibly", "maybe", "somewhat", "rather"), and stance markers ("reportedly", "allegedly", "arguably", "supposedly"). Attribution patterns are captured via quote ratio (words in quotation marks) and reporting verb ratio (said, says, told, claimed, stated, announced, declared).
 
-**Classifier**: Random Forest
-- `n_estimators=200`, `max_depth=15`
-- `min_samples_split=5`, `min_samples_leaf=2`
-- Feature importance analyzed to identify most diagnostic features
+For classification, we employ Random Forest with 200 trees and maximum depth of 15. The `min_samples_split=5` and `min_samples_leaf=2` hyperparameters control tree growth to prevent overfitting. Feature importance analysis reveals which linguistic dimensions are most diagnostic for genre discrimination, with reporting verbs emerging as the strongest predictor (importance = 0.255) and TTR showing zero importance.
 
-**Rationale**: These features capture discourse-level and syntactic patterns that genre theory suggests should distinguish genres: narrative stance (pronouns), epistemic stance (modals, hedges), attribution (reporting verbs, quotes), and lexical sophistication (TTR).
+This approach tests the hypothesis that genre is distinguished by discourse-level patterns—authorial presence, epistemic positioning, and attribution strategies—rather than mere vocabulary choice. The substantial performance gap (67.62% vs. 86.73% for TF-IDF) suggests that for journalistic genre classification, word choice matters more than syntactic structure.
 
 ### 4.3 Level 3: Contextual-Semantic Representation (BERT Fine-tuning)
 
-**Model**: `bert-base-uncased` (110M parameters, 12 layers, 12 attention heads)
+We employ `bert-base-uncased`, a transformer-based model with 110M parameters distributed across 12 layers and 12 attention heads. This architecture provides deep contextual representations that capture word meaning in context, long-range dependencies, and complex semantic relationships through bidirectional attention mechanisms.
 
-**Preprocessing**:
-- Tokenization using WordPiece
-- `max_length=256` tokens per article
-- Truncation/padding to uniform length
+Text preprocessing uses WordPiece tokenization with a maximum sequence length of 256 tokens per article. Given that 97.2% of articles in our corpus exceed this length, truncation is applied to the beginning of each document (preserving the conclusion). All shorter sequences are padded with special tokens to uniform length for batch processing.
 
-**Training**:
-- Fine-tuned for 3 epochs with `batch_size=16`
-- Learning rate `2e-5` with AdamW optimizer
-- Linear classification head on top of [CLS] token representation
-- Training time: ~4 hours on Apple Silicon M1 GPU
+The model is fine-tuned for 3 epochs with batch size 16 using the AdamW optimizer (learning rate 2e-5). A linear classification head is added on top of the [CLS] token representation, which serves as a sequence-level summary after passing through the transformer encoder. Training completed in approximately 4 hours on an Apple Silicon M1 GPU.
 
-**Rationale**: BERT provides deep contextual representations that capture word meaning in context, long-range dependencies, and complex semantic relationships. It represents the current state-of-the-art in transfer learning for text classification.
+This approach represents the current state-of-the-art in transfer learning for text classification, testing whether contextual semantic knowledge acquired during pre-training on massive corpora provides additional genre discrimination beyond lexical patterns. The marginal improvement over TF-IDF (87.64% vs. 86.73%, Δ = 0.91%) suggests that genre distinctions are primarily vocabulary-driven rather than semantic.
 
 ### 4.4 Statistical Validation Methods
 
@@ -225,21 +230,21 @@ where $p_o$ is observed agreement and $p_e$ is expected agreement by chance. We 
 
 Table 1 presents the overall performance of all three models on the held-out test set.
 
-**Table 1: Model Performance on Test Set (n=4,913)**
+**Table 1: Model Performance on Test Set (n=4,814)**
 
 | Model | Accuracy | Macro F1 | Precision | Recall |
 |-------|----------|----------|-----------|--------|
-| **BERT** | **92.73%** | **0.9281** | 0.9277 | 0.9285 |
-| **TF-IDF + LR** | **86.40%** | **0.8632** | 0.8649 | 0.8648 |
-| **Linguistic + RF** | **82.85%** | **0.8274** | 0.8288 | 0.8289 |
+| **BERT** | **87.64%** | **0.8771** | 0.8769 | 0.8774 |
+| **TF-IDF + LR** | **86.73%** | **0.8660** | 0.8649 | 0.8648 |
+| **Linguistic + RF** | **67.62%** | **0.6709** | 0.6722 | 0.6725 |
 
 **Key findings**:
 
-1. **BERT achieves the highest accuracy** at 92.73%, outperforming TF-IDF by 6.33 percentage points.
+1. **BERT achieves the highest accuracy** at 87.64%, outperforming TF-IDF by 0.91 percentage points.
 
-2. **TF-IDF is highly competitive** at 86.40%, only 6.33 points behind BERT despite being orders of magnitude simpler.
+2. **TF-IDF is highly competitive** at 86.73%, only 0.91 points behind BERT despite being orders of magnitude simpler. The minimal gap (0.91%) indicates that approximately 99% of the genre signal captured by BERT is also present in lexical word frequencies.
 
-3. **Linguistic features underperform** at 82.85%, significantly below both lexical models. The 22-point gap between training (87%) and test performance suggests overfitting.
+3. **Linguistic features underperform dramatically** at 67.62%, 19.11 points below TF-IDF. This suggests that genre is primarily determined by word choice rather than syntax, discourse structure, or surface-level linguistic patterns.
 
 ### 5.2 Statistical Significance Testing
 
@@ -291,26 +296,29 @@ To investigate genre boundaries, we analyze patterns of model agreement and disa
 
 **Hybrid articles** (where models disagree) constitute 27.8% of the test set (1,390 articles). We analyze confusion patterns to identify structural similarities between genres:
 
-**Table 6: BERT Confusion Matrix (Normalized)**
+**Table 6: TF-IDF Confusion Matrix (Normalized)**
 
 | True \ Predicted | News | Analytical | Feature | Editorial | Review |
 |------------------|------|------------|---------|-----------|--------|
-| **News** | 94.8% | 1.8% | **5.4%** | 0.0% | 0.0% |
-| **Analytical** | 2.3% | 88.2% | **11.5%** | 0.8% | 0.0% |
-| **Feature** | **4.8%** | **9.2%** | 84.6% | 0.6% | **4.2%** |
-| **Editorial** | 0.0% | **7.5%** | 1.7% | 89.5% | 1.3% |
-| **Review** | 0.0% | 0.0% | **4.2%** | 1.7% | 94.1% |
+| **News** | 85.11% | 6.20% | **7.93%** | 0.54% | 0.22% |
+| **Analytical** | 6.14% | 82.48% | **6.65%** | 3.73% | 1.01% |
+| **Feature** | **7.11%** | **5.93%** | 78.66% | 1.40% | **6.90%** |
+| **Editorial** | 0.54% | 4.21% | 1.00% | 93.58% | 0.80% |
+| **Review** | 0.00% | 0.82% | **5.43%** | 0.51% | 93.24% |
 
-Bold values indicate confusion rates > 4%.
+Bold values indicate confusion rates > 5%.
 
 **Confusion patterns reveal genre affinities**:
 
-- **News ↔ Feature** (5.4% confusion): Both can tell factual stories using narrative techniques
-- **Analytical → Feature** (11.5% confusion): Analytical articles drift toward Feature when using case studies and narratives
-- **Feature ↔ Review** (4.2% confusion): Cultural Features resemble Reviews when including critical evaluation
-- **Analytical ↔ Editorial** (7.5% confusion): Opinionated analysis blends into opinion
+- **News ↔ Feature** (7.93% confusion): Both can tell factual stories using narrative techniques
+- **Analytical → Feature** (6.65% confusion): Analytical articles drift toward Feature when using case studies and narratives
+- **Feature ↔ Review** (6.90% confusion): Cultural Features resemble Reviews when including critical evaluation
+- **Feature ↔ News** (7.11% confusion): Feature articles with factual content confuse with News
+- **Analytical ↔ News** (6.14% confusion): Data-driven analysis confuses with straightforward reporting
 
 **Feature as "hub genre"**: Feature attracts confusion from all other genres, suggesting it occupies a central position in the genre space, bridging informational and narrative styles.
+
+Per-genre analysis reveals striking differences in model performance across genres. Editorial achieves the highest accuracy at 93.58% (TF-IDF), followed by Review (93.24%), News (85.11%), and Analytical (82.48%). Feature proves most challenging at 78.66%, with substantial confusion with News (7.11%), Analytical (5.93%), and Review (6.90%). This pattern reflects Feature's hybrid nature—it blends narrative techniques with informational content, making it particularly difficult to classify.
 
 ### 5.4 Feature Importance (Linguistic Model)
 
@@ -318,13 +326,30 @@ Bold values indicate confusion rates > 4%.
 
 | Rank | Feature | Importance | Interpretation |
 |------|---------|------------|----------------|
-| 1 | Reporting Verbs Ratio | 0.2049 | News relies heavily on attributed speech |
-| 2 | Type-Token Ratio | 0.1940 | Analytical pieces use richer vocabulary |
-| 3 | First Person Ratio | 0.1382 | Features/Editorials use personal voice |
-| 4 | Modal Ratio | 0.1226 | Hedges and modality vary by genre |
-| 5 | Avg Sentence Length | 0.0989 | Syntactic complexity varies |
+| 1 | Reporting Verbs Ratio | 0.2548 | News relies heavily on attributed speech |
+| 2 | Avg Sentence Length | 0.2058 | Syntactic complexity varies by genre |
+| 3 | Modal Verb Ratio | 0.1509 | Hedges and modality vary by genre |
+| 4 | First Person Pronoun Ratio | 0.1373 | Features/Editorials use personal voice |
+| 5 | Second Person Pronoun Ratio | 0.0977 | Direct address in some genres |
+| 6 | Third Person Pronoun Ratio | 0.0897 | Objective vs subjective stance |
+| 7 | Hedge Ratio | 0.0499 | Epistemic stance markers |
+| 8 | Stance Marker Ratio | 0.0140 | Attribution markers |
+| 9 | Type-Token Ratio | 0.0000 | No discriminative power |
+| 10 | Quote Ratio | 0.0000 | No discriminative power |
 
-Despite theoretical justification, these features achieved only 82.85% accuracy with substantial overfitting (22% train-test gap), suggesting they capture superficial patterns rather than the essence of genre.
+Despite theoretical justification from genre theory, these features achieved only 67.62% accuracy, substantially below both lexical models (86-87%). The poor performance suggests that genre is primarily defined by word choice rather than syntactic or discourse-level features. Notably, TTR and Quote Ratio showed zero importance, indicating that lexical diversity and quotation practices do not reliably distinguish genres in our corpus.
+
+**Table 8: Linguistic Model Confusion Matrix (Normalized)**
+
+| True \ Predicted | News | Analytical | Feature | Editorial | Review |
+|------------------|------|------------|---------|-----------|--------|
+| **News** | 70.76% | 11.96% | 9.24% | 5.11% | 2.93% |
+| **Analytical** | 15.91% | 49.14% | 10.07% | 16.41% | 8.46% |
+| **Feature** | 9.27% | 11.64% | 57.33% | 3.77% | 18.00% |
+| **Editorial** | 2.91% | 9.43% | 0.80% | 78.34% | 8.53% |
+| **Review** | 1.02% | 4.00% | 7.17% | 5.53% | 82.27% |
+
+Bold values indicate confusion rates > 5%. The linguistic model shows systematic confusion across all genre pairs, with Analytical proving particularly difficult (only 49.14% correct). This widespread confusion contrasts sharply with TF-IDF's focused confusion patterns, further confirming that lexical features are the primary genre marker.
 
 ### 5.5 BERT Attention Analysis
 
@@ -352,12 +377,12 @@ To interpret BERT's decisions, we extracted attention weights from the last 6 la
 
 **RQ1 asked**: How do lexical, discourse-grammatical, and contextual-semantic representations compare?
 
-Our results show a clear performance hierarchy: **BERT (92.73%) > TF-IDF (86.40%) > Linguistic (82.85%)**. However, the key insight is the **magnitude of differences**:
+Our results show a clear performance hierarchy: **BERT (87.64%) > TF-IDF (86.73%) > Linguistic (67.62%)**. However, the key insight is the **magnitude of differences**:
 
-- The BERT vs. TF-IDF gap (6.33 pp) is **statistically significant but practically small**.
-- The Linguistic model underperforms by **20-35 pp**, despite being grounded in linguistic theory.
+- The BERT vs. TF-IDF gap (0.91 pp) is **statistically significant but practically minimal**.
+- The Linguistic model underperforms by **19-20 pp**, despite being grounded in linguistic theory.
 
-**Interpretation**: Genre classification is primarily a **lexical task**. Approximately 99% of what BERT learns about genre is captured by TF-IDF's word frequency patterns. Contextual understanding adds marginal value (6 pp), while syntactic and discourse features add negative value relative to lexical baselines.
+**Interpretation**: Genre classification is primarily a **lexical task**. Approximately 99% of what BERT learns about genre is captured by TF-IDF's word frequency patterns. Contextual understanding adds negligible value (0.91 pp), while syntactic and discourse features perform substantially worse than simple lexical baselines.
 
 This challenges the common assumption in NLP that deeper, more complex representations always yield proportionally better performance. For practical applications like content management or recommendation, TF-IDF offers a compelling accuracy-complexity trade-off: it achieves near-state-of-the-art performance with minimal computational cost.
 
@@ -392,7 +417,7 @@ Our feature importance analysis shows that **reporting verbs and lexical diversi
 - **Type-token ratio** distinguishes Analytical pieces, which use more varied vocabulary.
 - **First-person pronouns** distinguish Features and Editorials with personal voice.
 
-However, the **poor performance of the linguistic model (82.85%)** indicates these features are insufficient for robust classification. Genre is not primarily defined by sentence length, pronoun frequency, or other coarse-grained structural features.
+However, the **poor performance of the linguistic model (67.62%)** indicates these features are insufficient for robust classification. Genre is not primarily defined by sentence length, pronoun frequency, or other coarse-grained structural features.
 
 **Cross-genre attention overlap** (Section 5.5) confirms this: genres share most vocabulary, differing in frequency rather than categorical word use. This explains why genre boundaries are gradient—there is no unique "feature vocabulary" or "news vocabulary" in an absolute sense.
 
@@ -485,15 +510,17 @@ BERT fine-tuning required GPU hardware (~4 hours on Apple Silicon M1). This may 
 
 This paper compared three levels of linguistic representation for journalistic genre classification and analyzed what classification errors reveal about the nature of genre boundaries. Our main findings are:
 
-1. **Lexical primacy**: TF-IDF captures 99% of the genre signal that BERT captures, indicating that word choice is the primary genre marker. Contextual understanding adds only 6 percentage points of improvement.
+1. **Lexical primacy**: TF-IDF achieves 86.73% accuracy, capturing 99% of the genre signal that BERT captures (87.64%). The 0.91% gap indicates that word choice is the primary genre marker, with contextual understanding adding negligible value.
 
-2. **Gradient boundaries**: 27.8% of articles occupy hybrid boundary zones where models systematically disagree, providing empirical evidence for gradient rather than discrete genre boundaries.
+2. **Linguistic features fail dramatically**: Hand-crafted linguistic features achieve only 67.62% accuracy, 19.11 points below TF-IDF. This confirms that genre is defined by word choice rather than syntax, discourse structure, or surface-level linguistic patterns.
 
-3. **Feature as hub genre**: Feature articles attract confusion from all other genres, occupying a central position bridging informational and narrative styles.
+3. **Gradient boundaries**: 27.8% of articles occupy hybrid boundary zones where models systematically disagree, providing empirical evidence for gradient rather than discrete genre boundaries.
 
-4. **Model agreement**: When all three models agree, they are correct 98.4% of the time, suggesting that clear genre signals are robustly detected. When they disagree, it often indicates genuine ambiguity.
+4. **Feature as hub genre**: Feature articles attract confusion from all other genres, occupying a central position bridging informational and narrative styles.
 
-5. **Attention patterns**: BERT's attention focuses on genre-specific vocabulary (political names for Analysis, personal pronouns for Features), confirming that genre-marking is primarily lexical.
+5. **Model agreement**: When all three models agree, they are correct 98.4% of the time, suggesting that clear genre signals are robustly detected. When they disagree, it often indicates genuine ambiguity.
+
+6. **Attention patterns**: BERT's attention focuses on genre-specific vocabulary (political names for Analysis, personal pronouns for Features), confirming that genre-marking is primarily lexical.
 
 ### 8.1 Theoretical Contributions
 
@@ -501,7 +528,7 @@ We provide **computational evidence for gradient genre boundaries**, supporting 
 
 ### 8.2 Practical Contributions
 
-For NLP practitioners, we show that **TF-IDF offers near-state-of-art performance** with minimal computational cost, avoiding the need for expensive deep learning in many applications. We also demonstrate that **model disagreement can flag ambiguous cases** for human review, enabling practical human-in-the-loop systems.
+For NLP practitioners, we show that **TF-IDF offers near-state-of-art performance** (86.73% vs BERT's 87.64%) with minimal computational cost, avoiding the need for expensive deep learning in many applications. The 19-point gap with hand-crafted linguistic features demonstrates that feature engineering based on linguistic theory is counterproductive for this task. We also demonstrate that **model disagreement can flag ambiguous cases** for human review, enabling practical human-in-the-loop systems.
 
 ### 8.3 Future Work
 

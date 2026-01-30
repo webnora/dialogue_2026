@@ -1,0 +1,15 @@
+{
+  "accuracy": 0.8672621520565019,
+  "macro_f1": 0.8660302200706453,
+  "best_params": {
+    "C": 10.0,
+    "max_iter": 1000,
+    "penalty": "l2",
+    "solver": "lbfgs"
+  },
+  "best_cv_score": 0.865626397224629,
+  "train_size": 38512,
+  "val_size": 4814,
+  "test_size": 4814,
+  "num_features": 10000
+}

@@ -26,11 +26,11 @@ from tqdm.auto import tqdm
 import os
 
 # Configuration
-DATA_PATH = "data/cleaned_combined_guardian.csv"
-MODEL_SAVE_PATH = "models/bert_category_classifier"
-METRICS_SAVE_PATH = "results/bert_metrics.json"
-CM_SAVE_PATH = "results/bert_confusion_matrix.npy"
-LABEL_ENCODER_PATH = "models/bert_label_encoder.pkl"
+DATA_PATH = "data/cleaned_guardian_filtered.csv"
+MODEL_SAVE_PATH = "models/bert_category_classifier_cleaned"
+METRICS_SAVE_PATH = "results/bert_metrics_cleaned.json"
+CM_SAVE_PATH = "results/bert_confusion_matrix_cleaned.npy"
+LABEL_ENCODER_PATH = "models/bert_label_encoder_cleaned.pkl"
 
 # Training hyperparameters
 MAX_LENGTH = 256

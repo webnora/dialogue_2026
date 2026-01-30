@@ -1,0 +1,26 @@
+{
+  "accuracy": 0.6761528874117159,
+  "macro_f1": 0.6708713651745374,
+  "best_params": {
+    "max_depth": 15,
+    "min_samples_leaf": 1,
+    "min_samples_split": 5,
+    "n_estimators": 100
+  },
+  "best_cv_score": 0.6761528074179982,
+  "train_size": 38512,
+  "val_size": 4814,
+  "test_size": 4814,
+  "feature_importance": {
+    "TTR": 0.0,
+    "AvgSentLen": 0.20580627163972084,
+    "1stPron": 0.13731676227889822,
+    "2ndPron": 0.09771100375595802,
+    "3rdPron": 0.08966900142130381,
+    "Modal": 0.15085840829285713,
+    "Hedge": 0.049867541030338094,
+    "Stance": 0.014010862170032092,
+    "Quote": 0.0,
+    "ReportVerb": 0.2547601494108918
+  }
+}
