@@ -1,0 +1,39 @@
+{
+  "test_accuracy": 0.8818030743664312,
+  "test_f1_macro": 0.880220242417664,
+  "test_f1_weighted": 0.8808160855188344,
+  "best_val_accuracy": 0.8776485251350229,
+  "training_history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.5101142307433119,
+      "val_accuracy": 0.8568757789779808,
+      "val_f1_macro": 0.8540468584263994
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.2570403378281168,
+      "val_accuracy": 0.8776485251350229,
+      "val_f1_macro": 0.8759288173235596
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.14273741996220665,
+      "val_accuracy": 0.8774407976734524,
+      "val_f1_macro": 0.8762494939220297
+    }
+  ],
+  "categories": [
+    "Analytical",
+    "Editorial",
+    "Feature",
+    "News",
+    "Review"
+  ],
+  "hyperparameters": {
+    "max_length": 256,
+    "batch_size": 16,
+    "epochs": 3,
+    "learning_rate": 2e-05
+  }
+}

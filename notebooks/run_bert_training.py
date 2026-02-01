@@ -18,7 +18,7 @@ from transformers import (
     BertTokenizer,
     BertForSequenceClassification,
     get_linear_schedule_with_warmup,
-    DataCollatorWithPadding
+    DataCollatorWithPadding,
 )
 from datasets import Dataset
 from torch.utils.data import DataLoader
@@ -50,9 +50,9 @@ else:
     device = torch.device("cpu")
     print(f"Using CPU")
 
-print(f"\n{'='*80}")
+print(f"\n{'=' * 80}")
 print(f"BERT Fine-tuning for Guardian Genre Classification")
-print(f"{'='*80}\n")
+print(f"{'=' * 80}\n")
 
 
 def validate_texts(text_list):
@@ -76,9 +76,7 @@ def main():
 
     # Convert to string and clean
     df["cleaned_text"] = (
-        df["cleaned_text"]
-        .astype(str)
-        .replace({"nan": "", "None": "", "null": ""})
+        df["cleaned_text"].astype(str).replace({"nan": "", "None": "", "null": ""})
     )
 
     # Remove invalid texts
@@ -110,19 +108,11 @@ def main():
     # 4. Split data
     print("[4/8] Splitting data...")
     train_texts, temp_texts, train_labels, temp_labels = train_test_split(
-        texts,
-        labels,
-        test_size=0.2,
-        stratify=labels,
-        random_state=42
+        texts, labels, test_size=0.2, stratify=labels, random_state=42
     )
 
     val_texts, test_texts, val_labels, test_labels = train_test_split(
-        temp_texts,
-        temp_labels,
-        test_size=0.5,
-        stratify=temp_labels,
-        random_state=42
+        temp_texts, temp_labels, test_size=0.5, stratify=temp_labels, random_state=42
     )
 
     print(f"  Train: {len(train_texts)}")
@@ -150,28 +140,22 @@ def main():
             truncation=True,
             max_length=MAX_LENGTH,
             return_attention_mask=True,
-            return_token_type_ids=False
+            return_token_type_ids=False,
         )
         return {
             "input_ids": tokenized["input_ids"],
             "attention_mask": tokenized["attention_mask"],
-            "labels": examples["label"]
+            "labels": examples["label"],
         }
 
     tokenized_train = train_dataset.map(
-        tokenize_function,
-        batched=True,
-        remove_columns=["text"]
+        tokenize_function, batched=True, remove_columns=["text"]
     )
     tokenized_val = val_dataset.map(
-        tokenize_function,
-        batched=True,
-        remove_columns=["text"]
+        tokenize_function, batched=True, remove_columns=["text"]
     )
     tokenized_test = test_dataset.map(
-        tokenize_function,
-        batched=True,
-        remove_columns=["text"]
+        tokenize_function, batched=True, remove_columns=["text"]
     )
 
     # 7. Create dataloaders
@@ -181,42 +165,32 @@ def main():
         padding=True,
         max_length=MAX_LENGTH,
         pad_to_multiple_of=8,
-        return_tensors="pt"
+        return_tensors="pt",
     )
 
     train_dataloader = DataLoader(
-        tokenized_train,
-        shuffle=True,
-        batch_size=BATCH_SIZE,
-        collate_fn=data_collator
+        tokenized_train, shuffle=True, batch_size=BATCH_SIZE, collate_fn=data_collator
     )
 
     val_dataloader = DataLoader(
-        tokenized_val,
-        batch_size=BATCH_SIZE,
-        collate_fn=data_collator
+        tokenized_val, batch_size=BATCH_SIZE, collate_fn=data_collator
     )
 
     test_dataloader = DataLoader(
-        tokenized_test,
-        batch_size=BATCH_SIZE,
-        collate_fn=data_collator
+        tokenized_test, batch_size=BATCH_SIZE, collate_fn=data_collator
     )
 
     # 8. Model
     print("\n[8/8] Training model...")
     model = BertForSequenceClassification.from_pretrained(
-        "bert-base-uncased",
-        num_labels=len(label_encoder.classes_)
+        "bert-base-uncased", num_labels=len(label_encoder.classes_)
     ).to(device)
 
     # Optimizer and scheduler
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
     total_steps = len(train_dataloader) * EPOCHS
     scheduler = get_linear_schedule_with_warmup(
-        optimizer,
-        num_warmup_steps=WARMUP_STEPS,
-        num_training_steps=total_steps
+        optimizer, num_warmup_steps=WARMUP_STEPS, num_training_steps=total_steps
     )
 
     print(f"\nTraining configuration:")
@@ -226,7 +200,7 @@ def main():
     print(f"  Max length: {MAX_LENGTH}")
     print(f"  Learning rate: {LEARNING_RATE}")
     print(f"  Total steps: {total_steps}")
-    print(f"\n{'='*80}\n")
+    print(f"\n{'=' * 80}\n")
 
     # Training loop
     best_val_accuracy = 0
@@ -252,10 +226,12 @@ def main():
             optimizer.zero_grad()
 
             train_losses.append(loss.item())
-            progress_bar.set_postfix({
-                "loss": f"{loss.item():.4f}",
-                "avg_loss": f"{np.mean(train_losses[-100:]):.4f}"
-            })
+            progress_bar.set_postfix(
+                {
+                    "loss": f"{loss.item():.4f}",
+                    "avg_loss": f"{np.mean(train_losses[-100:]):.4f}",
+                }
+            )
 
         avg_train_loss = np.mean(train_losses)
 
@@ -277,18 +253,20 @@ def main():
             val_true.extend(batch["labels"].cpu().numpy())
 
         val_accuracy = accuracy_score(val_true, val_predictions)
-        val_f1 = f1_score(val_true, val_predictions, average='macro')
+        val_f1 = f1_score(val_true, val_predictions, average="macro")
 
         print(f"\n  Train Loss: {avg_train_loss:.4f}")
         print(f"  Val Accuracy: {val_accuracy:.4f}")
         print(f"  Val F1 (macro): {val_f1:.4f}")
 
-        training_history.append({
-            "epoch": epoch + 1,
-            "train_loss": avg_train_loss,
-            "val_accuracy": val_accuracy,
-            "val_f1_macro": val_f1
-        })
+        training_history.append(
+            {
+                "epoch": epoch + 1,
+                "train_loss": avg_train_loss,
+                "val_accuracy": val_accuracy,
+                "val_f1_macro": val_f1,
+            }
+        )
 
         # Save best model
         if val_accuracy > best_val_accuracy:
@@ -298,13 +276,11 @@ def main():
             tokenizer.save_pretrained(MODEL_SAVE_PATH)
 
     # Testing
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("Testing on hold-out set...")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
-    model.load_state_dict(
-        torch.load(f"{MODEL_SAVE_PATH}/pytorch_model.bin", map_location=device)
-    )
+    model = BertForSequenceClassification.from_pretrained(MODEL_SAVE_PATH).to(device)
     model.eval()
 
     test_predictions = []
@@ -323,8 +299,8 @@ def main():
         test_true.extend(batch["labels"].cpu().numpy())
 
     test_accuracy = accuracy_score(test_true, test_predictions)
-    test_f1_macro = f1_score(test_true, test_predictions, average='macro')
-    test_f1_weighted = f1_score(test_true, test_predictions, average='weighted')
+    test_f1_macro = f1_score(test_true, test_predictions, average="macro")
+    test_f1_weighted = f1_score(test_true, test_predictions, average="weighted")
 
     print(f"\nFinal Test Results:")
     print(f"  Accuracy: {test_accuracy:.4f}")
@@ -349,22 +325,22 @@ def main():
             "max_length": MAX_LENGTH,
             "batch_size": BATCH_SIZE,
             "epochs": EPOCHS,
-            "learning_rate": LEARNING_RATE
-        }
+            "learning_rate": LEARNING_RATE,
+        },
     }
 
-    with open(METRICS_SAVE_PATH, 'w') as f:
+    with open(METRICS_SAVE_PATH, "w") as f:
         json.dump(metrics, f, indent=2)
 
     np.save(CM_SAVE_PATH, cm)
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Results saved:")
     print(f"  Model: {MODEL_SAVE_PATH}/")
     print(f"  Metrics: {METRICS_SAVE_PATH}")
     print(f"  Confusion Matrix: {CM_SAVE_PATH}")
     print(f"  Label Encoder: {LABEL_ENCODER_PATH}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
 
 if __name__ == "__main__":

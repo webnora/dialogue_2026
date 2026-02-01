@@ -3,11 +3,11 @@
     {
       "model1": "TF-IDF",
       "model2": "BERT",
-      "a": 4160,
-      "b": 160,
-      "c": 476,
-      "d": 204,
-      "chi2_statistic": 156.01415094339623,
+      "a": 2806,
+      "b": 1514,
+      "c": 235,
+      "d": 445,
+      "chi2_statistic": 933.8387650085763,
       "p_value": 0.0,
       "significant": 1
     },
@@ -25,11 +25,11 @@
     {
       "model1": "Linguistic",
       "model2": "BERT",
-      "a": 3921,
-      "b": 222,
-      "c": 715,
-      "d": 142,
-      "chi2_statistic": 258.3393810032017,
+      "a": 2589,
+      "b": 1554,
+      "c": 452,
+      "d": 405,
+      "chi2_statistic": 604.2876370887338,
       "p_value": 0.0,
       "significant": 1
     }
@@ -61,21 +61,21 @@
     },
     "bert": {
       "accuracy": {
-        "mean": 0.9273132000000001,
-        "ci_lower": 0.920195,
-        "ci_upper": 0.9342050000000001
+        "mean": 0.6078488,
+        "ci_lower": 0.5942,
+        "ci_upper": 0.6216050000000001
       },
       "f1_macro": {
-        "mean": 0.9280616086451082,
-        "ci_lower": 0.9211524646151724,
-        "ci_upper": 0.935149259392618
+        "mean": 0.6122390820979474,
+        "ci_lower": 0.5985971554784746,
+        "ci_upper": 0.6259490451168246
       }
     }
   },
   "model_agreement": {
-    "tfidf_vs_bert": 0.8269593869424003,
+    "tfidf_vs_bert": 0.4971957028393583,
     "tfidf_vs_linguistic": 0.7278557907835361,
-    "linguistic_vs_bert": 0.7519690829461892
+    "linguistic_vs_bert": 0.432258795149119
   },
   "n_samples": 5000,
   "n_bootstrap": 1000
